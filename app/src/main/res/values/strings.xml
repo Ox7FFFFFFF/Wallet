@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Wallet</string>
+    <string name="action_settings">Settings</string>
+    <string name="menu_1">All</string>
+    <string name="menu_2">Detail</string>
+    <string name="menu_3">Record</string>
+    <string name="menu_4">History</string>
+    <string name="menu_5">Setting</string>
+
+    <string name="fragment_home_balance">Balance</string>
+    <string name="fragment_home_income">Income</string>
+    <string name="fragment_home_expense">Expense</string>
+
+    <string name="fragment_input_title">Record</string>
+    <string name="fragment_input_name">Name</string>
+    <string name="fragment_input_dollar">Cost</string>
+    <string name="fragment_input_date">Date</string>
+    <string name="fragment_input_type">Type</string>
+    <string name="fragment_input_income">Income</string>
+    <string name="fragment_input_expense">Expense</string>
+    <string name="fragment_input_category">Category</string>
+    <string name="fragment_input_submit">Submit</string>
+</resources>
