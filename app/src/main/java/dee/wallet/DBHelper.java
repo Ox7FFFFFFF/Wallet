@@ -1,5 +1,6 @@
 package dee.wallet;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -9,10 +10,10 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 
 public class DBHelper extends SQLiteOpenHelper {
-    private static String DATABASE_NAME = "wallet.db";
+    public static String DATABASE_NAME = "wallet.db";
     private static int DATABASE_VERSION = 1;
-    private static String RECORD_TABLE_NAME = "record";
-    private static String CATEGORY_TABLE_NAME = "category";
+    public static String RECORD_TABLE_NAME = "record";
+    public static String CATEGORY_TABLE_NAME = "category";
     private static String CREATE_RECORD_TABLE = "CREATE TABLE "+RECORD_TABLE_NAME+" (" +
             "_id INTEGER PRIMARY KEY NOT NULL,"+
             "_name VARCHAR,"+
@@ -25,8 +26,6 @@ public class DBHelper extends SQLiteOpenHelper {
             "_type INTEGER,"+
             "_name VARCHAR);";
 
-
-
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -35,6 +34,22 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_CATEGORY_TABLE);
         db.execSQL(CREATE_RECORD_TABLE);
+
+        String[] categoryExpenseList = new String[] {"Activity","School","Lunch","Breakfast","Dinner"};
+        String[] categoryIncomeList = new String[] {"Salary","Home"};
+
+        for(int i=0;i<categoryExpenseList.length;i++){
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("_type",0);
+            contentValues.put("_name",categoryExpenseList[i]);
+            db.insert(CATEGORY_TABLE_NAME,null,contentValues);
+        }
+        for(int i=0;i<categoryIncomeList.length;i++){
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("_type",1);
+            contentValues.put("_name",categoryIncomeList[i]);
+            db.insert(CATEGORY_TABLE_NAME,null,contentValues);
+        }
     }
 
     @Override

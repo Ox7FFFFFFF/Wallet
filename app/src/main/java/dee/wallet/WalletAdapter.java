@@ -15,7 +15,7 @@ import java.util.ArrayList;
  */
 
 public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private ArrayList<String> mDataset = new ArrayList<>();
+    private ArrayList<RecordDetail> mDataset = new ArrayList<>();
     public enum ITEM_TYPE {
         ITEM_TYPE_DATE,
         ITEM_TYPE_RECORD
@@ -39,7 +39,7 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
     }
 
-    public WalletAdapter(ArrayList<String> dataset) {
+    public WalletAdapter(ArrayList<RecordDetail> dataset) {
         mDataset.clear();
         mDataset.addAll(dataset);
     }
@@ -60,11 +60,13 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        RecordDetail recordDetail = mDataset.get(position);
         if(holder instanceof DateViewHolder){
-
+            ((DateViewHolder)holder).textdate.setText(recordDetail.getName());
         }
         else if(holder instanceof RecordViewHolder){
-            ((RecordViewHolder)holder).textName.setText(mDataset.get(position));
+            ((RecordViewHolder)holder).textName.setText(recordDetail.getName());
+            ((RecordViewHolder)holder).textDollar.setText(recordDetail.getCost());
         }
 
     }
@@ -76,7 +78,7 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     @Override
     public int getItemViewType(int position) {
-        return position == 0 ? ITEM_TYPE.ITEM_TYPE_DATE.ordinal() : ITEM_TYPE.ITEM_TYPE_RECORD.ordinal();
+        return mDataset.get(position).getId() < 0 ? ITEM_TYPE.ITEM_TYPE_DATE.ordinal() : ITEM_TYPE.ITEM_TYPE_RECORD.ordinal();
     }
 
 }
