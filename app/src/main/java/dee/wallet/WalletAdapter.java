@@ -1,5 +1,6 @@
 package dee.wallet;
 
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -66,7 +67,15 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
         else if(holder instanceof RecordViewHolder){
             ((RecordViewHolder)holder).textName.setText(recordDetail.getName());
-            ((RecordViewHolder)holder).textDollar.setText(recordDetail.getCost());
+            int type = recordDetail.getType();
+            if(type==0){
+                ((RecordViewHolder)holder).textDollar.setTextColor(Color.parseColor("#F8838B"));
+                ((RecordViewHolder)holder).textDollar.setText(String.valueOf(-recordDetail.getCost()));
+            }
+            else{
+                ((RecordViewHolder)holder).textDollar.setTextColor(Color.parseColor("#4CAF9B"));
+                ((RecordViewHolder)holder).textDollar.setText(String.valueOf(recordDetail.getCost()));
+            }
         }
 
     }

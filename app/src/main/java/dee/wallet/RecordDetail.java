@@ -26,6 +26,12 @@ public class RecordDetail {
         this.name = name;
     }
 
+    public RecordDetail(int id, String name, int cost) {
+        this.id = id;
+        this.name = name;
+        this.cost = cost;
+    }
+
     public int getId() {
         return id;
     }

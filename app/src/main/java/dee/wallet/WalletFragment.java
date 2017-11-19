@@ -1,13 +1,16 @@
 package dee.wallet;
 
 import android.app.DatePickerDialog;
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,9 +26,23 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.github.mikephil.charting.animation.Easing;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.PercentFormatter;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Dee on 2017/11/8.
@@ -40,7 +57,7 @@ public class WalletFragment extends Fragment {
     SQLiteDatabase db;
 
     //FragmentDetailUI
-    private RecyclerView recyclerView;
+    private static RecyclerView recyclerView;
     private RecyclerView.LayoutManager layoutManager;
 
     //FragmentInputUI
@@ -52,6 +69,12 @@ public class WalletFragment extends Fragment {
     RadioButton radioButtonExpense;
     Spinner spinnerCategory;
     Button buttonSubmit;
+
+    //FragmentHistoryUI
+    PieChart pieChart;
+    private static RecyclerView historyView;
+    private RecyclerView.LayoutManager historyLayoutManager;
+
 
     public static WalletFragment newInstance(int index){
         WalletFragment fragment = new WalletFragment();
@@ -104,9 +127,12 @@ public class WalletFragment extends Fragment {
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(layoutManager);
-        String SQL = "SELECT * FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.RECORD_TABLE_NAME+"._category="+DBHelper.CATEGORY_TABLE_NAME+"._id";
-        Cursor cursor = db.rawQuery(SQL,null);
+        LoadWalletDetailData();
+    }
 
+    private void LoadWalletDetailData(){
+        String SQL = "SELECT * FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.RECORD_TABLE_NAME+"._category="+DBHelper.CATEGORY_TABLE_NAME+"._id ORDER BY "+DBHelper.RECORD_TABLE_NAME+"._date DESC,"+DBHelper.RECORD_TABLE_NAME+"._id DESC";
+        Cursor cursor = db.rawQuery(SQL,null);
         ArrayList <RecordDetail> recordData = new ArrayList<>();
         int count = cursor.getCount();
         String newDate="";
@@ -135,7 +161,6 @@ public class WalletFragment extends Fragment {
 
         }
         cursor.close();
-
         WalletAdapter adapter = new WalletAdapter(recordData);
         recyclerView.setAdapter(adapter);
     }
@@ -168,7 +193,7 @@ public class WalletFragment extends Fragment {
             }
         });
         radioGroupType.setOnCheckedChangeListener(onCheckedChangeListener);
-        radioButtonIncome.setChecked(true);
+        radioButtonExpense.setChecked(true);
         LoadSpinner(0);
 
         buttonSubmit.setOnClickListener(new View.OnClickListener() {
@@ -177,8 +202,24 @@ public class WalletFragment extends Fragment {
                 String name = editName.getText().toString();
                 int cost = Integer.parseInt(editDollar.getText().toString());
                 String date = editDate.getText().toString();
-                //TODO here
-                int category = queryCategory();
+                int type = (radioButtonExpense.isChecked())?0:1;
+//                cost = type==0 ? -cost:cost;
+                String type_name = spinnerCategory.getSelectedItem().toString();
+                int category = queryCategory(type,type_name);
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("_name",name);
+                contentValues.put("_cost",cost);
+                contentValues.put("_date",date);
+                contentValues.put("_category",category);
+                db.insert(DBHelper.RECORD_TABLE_NAME,null,contentValues);
+                Toast.makeText(getContext(),"Submit",Toast.LENGTH_SHORT).show();
+                LoadWalletDetailData();
+
+                editName.setText("");
+                editDollar.setText("");
+                editDate.setText(setDateFormat(mYear,mMonth,mDay));
+                radioButtonExpense.setChecked(true);
+                LoadSpinner(0);
             }
         });
 
@@ -190,8 +231,8 @@ public class WalletFragment extends Fragment {
                 + String.valueOf(dayOfMonth);
     }
 
-    private int queryCategory(int type,int name){
-        String SQL = "SELECT * FROM "+DBHelper.CATEGORY_TABLE_NAME+" WHERE _type="+type+" AND _name="+name;
+    private int queryCategory(int type,String name){
+        String SQL = "SELECT * FROM "+DBHelper.CATEGORY_TABLE_NAME+" WHERE _type="+type+" AND _name='"+name+"'";
         Cursor cursor = db.rawQuery(SQL,null);
         if(cursor.getCount()>0){
             cursor.moveToFirst();
@@ -206,13 +247,13 @@ public class WalletFragment extends Fragment {
         @Override
         public void onCheckedChanged(RadioGroup group, int checkedId) {
             switch (checkedId){
+                case R.id.radioButton_expense:
+                    LoadSpinner(0);
+                    Log.d("type","expense");
+                    break;
                 case R.id.radioButton_income:
                     Log.d("type","income");
-                    LoadSpinner(0);
-                    break;
-                case R.id.radioButton_expense:
                     LoadSpinner(1);
-                    Log.d("type","expense");
                     break;
             }
         }
@@ -220,7 +261,7 @@ public class WalletFragment extends Fragment {
 
     /***
      *
-     * @param index 0=income 1=expense
+     * @param index 1=income 0=expense
      */
     private void LoadSpinner(int index){
         String SQL = "SELECT * FROM "+DBHelper.CATEGORY_TABLE_NAME+" WHERE _type="+index;
@@ -242,8 +283,85 @@ public class WalletFragment extends Fragment {
     }
 
     private void initWalletHistory(View view){
+        pieChart = (PieChart) view.findViewById(R.id.pie_chart);
+        pieChart.setUsePercentValues(true);
+        pieChart.getDescription().setEnabled(false);
+        pieChart.setExtraOffsets(5, 10, 5, 5);
+        pieChart.setCenterText("expense");
+        pieChart.setCenterTextSize(22f);
+        pieChart.setDrawCenterText(true);
+        pieChart.setRotationEnabled(false);
+        pieChart.setRotationAngle(0f);
+        Legend legend = pieChart.getLegend();
+        legend.setEnabled(false);
+
+        historyView = (RecyclerView) view.findViewById(R.id.fragment_history_list);
+        historyView.setHasFixedSize(true);
+        historyLayoutManager = new LinearLayoutManager(getActivity());
+        historyView.setLayoutManager(historyLayoutManager);
+        LoadWalletHistoryData(0);
+    }
+
+    private void LoadWalletHistoryData(int index){
+        String SQL = "SELECT "+DBHelper.RECORD_TABLE_NAME+"._id , SUM("+DBHelper.RECORD_TABLE_NAME+"._cost),"+DBHelper.CATEGORY_TABLE_NAME+"._name FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.CATEGORY_TABLE_NAME+"._type="+index+" AND "+DBHelper.CATEGORY_TABLE_NAME+"._id="+DBHelper.RECORD_TABLE_NAME+"._category GROUP BY "+DBHelper.RECORD_TABLE_NAME+"._category" ;
+        Cursor cursor = db.rawQuery(SQL,null);
+        ArrayList <RecordDetail> historyData = new ArrayList<>();
+        int count = cursor.getCount();
+        if(count>0){
+            cursor.moveToFirst();
+            for(int i = 0; i<count;i++){
+                cursor.moveToPosition(i);
+                int id = cursor.getInt(0);
+                int cost = cursor.getInt(1);
+                String name = cursor.getString(2);
+                RecordDetail recordDetail = new RecordDetail(id,name,cost);
+                historyData.add(recordDetail);
+            }
+        }
+        else{
+
+        }
+        cursor.close();
+        //TODO
+        WalletAdapter adapter = new WalletAdapter(historyData);
+        historyView.setAdapter(adapter);
+
+        Map<String,Integer> pieValues = new HashMap<>();
+        for(int j=0; j<historyData.size();j++){
+            pieValues.put(historyData.get(j).getName(),historyData.get(j).getCost());
+        }
+        setPieChartData(pieChart, pieValues);
+        pieChart.animateX(1500, Easing.EasingOption.EaseInOutQuad);
 
     }
+
+    public static final int[] PIE_COLORS = {
+            Color.rgb(181, 194, 202), Color.rgb(129, 216, 200), Color.rgb(241, 214, 145),
+            Color.rgb(108, 176, 223), Color.rgb(195, 221, 155), Color.rgb(251, 215, 191),
+            Color.rgb(237, 189, 189), Color.rgb(172, 217, 243)
+    };
+    private void setPieChartData(PieChart pieChart, Map<String,Integer> pieValues){
+        ArrayList<PieEntry> entries = new ArrayList<>();
+        Set set = pieValues.entrySet();
+        Iterator iterator = set.iterator();
+        while (iterator.hasNext()){
+            Map.Entry entry = (Map.Entry) iterator.next();
+            entries.add(new PieEntry(Float.valueOf(entry.getValue().toString()), entry.getKey().toString()));
+        }
+        PieDataSet dataSet = new PieDataSet(entries, "");
+        dataSet.setSliceSpace(3f);
+        dataSet.setSelectionShift(5f);
+        dataSet.setColors(PIE_COLORS);
+        dataSet.setYValuePosition(PieDataSet.ValuePosition.INSIDE_SLICE);
+        PieData pieData = new PieData(dataSet);
+        pieData.setValueFormatter(new PercentFormatter());
+        pieData.setValueTextSize(12f);
+        pieData.setValueTextColor(Color.DKGRAY);
+        pieChart.setData(pieData);
+        pieChart.highlightValues(null);
+        pieChart.invalidate();
+    }
+
 
     private void initWalletSetting(View view){
 
