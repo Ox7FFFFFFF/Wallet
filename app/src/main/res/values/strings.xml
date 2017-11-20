@@ -20,4 +20,8 @@
     <string name="fragment_input_expense">Expense</string>
     <string name="fragment_input_category">Category</string>
     <string name="fragment_input_submit">Submit</string>
+
+    <string name="fragment_detail_head_expense">Expenses</string>
+    <string name="fragment_detail_head_income">Income</string>
+    <string name="fragment_detail_head_balance">Balance</string>
 </resources>

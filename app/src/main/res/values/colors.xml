@@ -10,4 +10,6 @@
         <item name="tab_4">#6C4A42</item>
         <item name="tab_5">#F63D2B</item>
     </array>
+    <color name="colorExpense">#F8838B</color>
+    <color name="colorIncome">#4CAF9B</color>
 </resources>

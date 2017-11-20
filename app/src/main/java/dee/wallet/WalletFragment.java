@@ -74,9 +74,8 @@ public class WalletFragment extends Fragment {
     //FragmentHistoryUI
     private static RecyclerView historyView;
     private RecyclerView.LayoutManager historyLayoutManager;
-    private Button btnLastWeek;
-    private Button btnLastMonth;
-    private Button btnLastYear;
+    private Button btnExpense;
+    private Button btnIncome;
 
     public static WalletFragment newInstance(int index){
         WalletFragment fragment = new WalletFragment();
@@ -133,9 +132,30 @@ public class WalletFragment extends Fragment {
     }
 
     private void LoadWalletDetailData(){
+        ArrayList <RecordDetail> recordData = new ArrayList<>();
+
+        //Head
+        String SQLHEAD = "SELECT "+DBHelper.CATEGORY_TABLE_NAME+"._type , SUM("+DBHelper.RECORD_TABLE_NAME+"._cost) FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.CATEGORY_TABLE_NAME+"._id = "+DBHelper.RECORD_TABLE_NAME+"._category GROUP BY "+DBHelper.CATEGORY_TABLE_NAME+"._type";
+        Cursor cursorHead = db.rawQuery(SQLHEAD,null);
+        int countHead = cursorHead.getCount();
+        cursorHead.moveToFirst();
+        int expense = 0;
+        int income = 0;
+        for(int i=0;i<countHead;i++){
+            cursorHead.moveToPosition(i);
+            int sum = cursorHead.getInt(1);
+            if(i==0){
+                expense = sum;
+            }
+            else {
+                income = sum;
+            }
+        }
+        recordData.add(new RecordDetail(expense,income,3));
+        cursorHead.close();
+        //Record
         String SQL = "SELECT * FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.RECORD_TABLE_NAME+"._category="+DBHelper.CATEGORY_TABLE_NAME+"._id ORDER BY "+DBHelper.RECORD_TABLE_NAME+"._date DESC,"+DBHelper.RECORD_TABLE_NAME+"._id DESC";
         Cursor cursor = db.rawQuery(SQL,null);
-        ArrayList <RecordDetail> recordData = new ArrayList<>();
         int count = cursor.getCount();
         String newDate="";
         if(count>0){
@@ -287,53 +307,35 @@ public class WalletFragment extends Fragment {
 
     private void initWalletHistory(View view){
         historyView = (RecyclerView) view.findViewById(R.id.fragment_history_list);
-        btnLastYear = (Button) view.findViewById(R.id.btn_last_year);
-        btnLastMonth = (Button) view.findViewById(R.id.btn_last_month);
-        btnLastWeek = (Button) view.findViewById(R.id.btn_last_week);
+        btnExpense = (Button) view.findViewById(R.id.btn_expense);
+        btnIncome = (Button) view.findViewById(R.id.btn_income);
 
-        btnLastYear.setOnClickListener(new View.OnClickListener() {
+        btnExpense.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                LoadWalletHistoryData(0);
             }
         });
 
-        btnLastMonth.setOnClickListener(new View.OnClickListener() {
+        btnIncome.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-            }
-        });
-
-        btnLastWeek.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
+                LoadWalletHistoryData(1);
             }
         });
 
         historyView.setHasFixedSize(true);
         historyLayoutManager = new LinearLayoutManager(getActivity());
         historyView.setLayoutManager(historyLayoutManager);
-        LoadWalletHistoryData(0,0);
+        LoadWalletHistoryData(0);
     }
 
-    private void LoadWalletHistoryData(int filterType,int index){
-        String SQL = "SELECT "+DBHelper.RECORD_TABLE_NAME+"._id , SUM("+DBHelper.RECORD_TABLE_NAME+"._cost),"+DBHelper.CATEGORY_TABLE_NAME+"._name FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.CATEGORY_TABLE_NAME+"._type="+index+" AND "+DBHelper.CATEGORY_TABLE_NAME+"._id="+DBHelper.RECORD_TABLE_NAME+"._category GROUP BY "+DBHelper.RECORD_TABLE_NAME+"._category";
-
-        if(filterType == 0){
-            
-        }
-        else if(filterType ==1){
-
-        }
-        else{
-
-        }
+    private void LoadWalletHistoryData(int index){
+        String SQL = "SELECT "+DBHelper.RECORD_TABLE_NAME+"._id , SUM("+DBHelper.RECORD_TABLE_NAME+"._cost),"+DBHelper.CATEGORY_TABLE_NAME+"._name,"+DBHelper.CATEGORY_TABLE_NAME+"._type FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.CATEGORY_TABLE_NAME+"._type="+index+" AND "+DBHelper.CATEGORY_TABLE_NAME+"._id="+DBHelper.RECORD_TABLE_NAME+"._category GROUP BY "+DBHelper.RECORD_TABLE_NAME+"._category";
 
         Cursor cursor = db.rawQuery(SQL,null);
         ArrayList <RecordDetail> historyData = new ArrayList<>();
-        historyData.add(new RecordDetail(0,"pie",0,2));
+        historyData.add(new RecordDetail(0,"pie",0,0,2));
         int count = cursor.getCount();
         if(count>0){
             cursor.moveToFirst();
@@ -342,7 +344,8 @@ public class WalletFragment extends Fragment {
                 int id = cursor.getInt(0);
                 int cost = cursor.getInt(1);
                 String name = cursor.getString(2);
-                RecordDetail recordDetail = new RecordDetail(id,name,cost,1);
+                int type = cursor.getInt(3);
+                RecordDetail recordDetail = new RecordDetail(id,name,cost,type,1);
                 historyData.add(recordDetail);
             }
         }

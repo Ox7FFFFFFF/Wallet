@@ -23,16 +23,23 @@ public class RecordDetail {
         this.layout = layout;
     }
 
-    public RecordDetail(int id, String name,int layout) {
+    public RecordDetail(int cost, int type, int layout) {
+        this.cost = cost;
+        this.type = type;
+        this.layout = layout;
+    }
+
+    public RecordDetail(int id, String name, int layout) {
         this.id = id;
         this.name = name;
         this.layout = layout;
     }
 
-    public RecordDetail(int id, String name, int cost ,int layout) {
+    public RecordDetail(int id, String name, int cost ,int type ,int layout) {
         this.id = id;
         this.name = name;
         this.cost = cost;
+        this.type = type;
         this.layout = layout;
     }
 

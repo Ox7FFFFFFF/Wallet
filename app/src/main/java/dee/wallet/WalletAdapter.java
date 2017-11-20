@@ -2,6 +2,7 @@ package dee.wallet;
 
 import android.graphics.Color;
 import android.hardware.usb.UsbAccessory;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,8 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
+
+import org.w3c.dom.Text;
 
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
@@ -36,7 +39,8 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public enum ITEM_TYPE {
         ITEM_TYPE_DATE,
         ITEM_TYPE_RECORD,
-        ITEM_TYPE_PIECHART
+        ITEM_TYPE_PIECHART,
+        ITEM_TYPE_HEAD
     }
     public static class DateViewHolder extends RecyclerView.ViewHolder {
         public TextView textdate;
@@ -49,20 +53,34 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         public TextView textName;
         public ImageView imageView;
         public TextView textDollar;
+        public ConstraintLayout constraintLayout;
         public RecordViewHolder(View v) {
             super(v);
             textName = (TextView) v.findViewById(R.id.item_name);
             textDollar = (TextView) v.findViewById(R.id.item_dollar);
             imageView = (ImageView) v.findViewById(R.id.item_icon);
+            constraintLayout = (ConstraintLayout) v.findViewById(R.id.layout_item);
         }
     }
     public static class PieChartViewHolder extends RecyclerView.ViewHolder{
         public PieChart pieChart;
         public PieChartViewHolder(View v){
             super(v);
-             pieChart = (PieChart) v.findViewById(R.id.pie_chart);
+            pieChart = (PieChart) v.findViewById(R.id.pie_chart);
         }
     }
+    public static class HeadViewHolder extends RecyclerView.ViewHolder{
+        public TextView textExpense;
+        public TextView textIncome;
+        public TextView textBalance;
+        public HeadViewHolder(View v){
+            super(v);
+            textIncome = (TextView) v.findViewById(R.id.textIncome);
+            textExpense = (TextView) v.findViewById(R.id.textExpense);
+            textBalance = (TextView) v.findViewById(R.id.textBalance);
+        }
+    }
+
 
     public WalletAdapter(ArrayList<RecordDetail> dataset) {
         mDataset.clear();
@@ -79,6 +97,11 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         else if(viewType == ITEM_TYPE.ITEM_TYPE_RECORD.ordinal()){
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycleview_item, parent, false);
             RecordViewHolder vh = new RecordViewHolder(v);
+            return vh;
+        }
+        else if(viewType == ITEM_TYPE.ITEM_TYPE_HEAD.ordinal()){
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycleview_head, parent, false);
+            HeadViewHolder vh = new HeadViewHolder(v);
             return vh;
         }
         else{
@@ -105,6 +128,12 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 ((RecordViewHolder)holder).textDollar.setTextColor(Color.parseColor("#4CAF9B"));
                 ((RecordViewHolder)holder).textDollar.setText(String.valueOf(recordDetail.getCost()));
             }
+            ((RecordViewHolder)holder).constraintLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
         }
         else if(holder instanceof PieChartViewHolder){
             ((PieChartViewHolder)holder).pieChart.setUsePercentValues(true);
@@ -127,6 +156,20 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             }
             setPieChartData(((PieChartViewHolder)holder).pieChart, pieValues);
             ((PieChartViewHolder)holder).pieChart.animateX(1500, Easing.EasingOption.EaseInOutQuad);
+        }
+        else if(holder instanceof HeadViewHolder){
+            int income = recordDetail.getType();
+            int expense = recordDetail.getCost();
+            int balance = income-expense;
+            ((HeadViewHolder)holder).textIncome.setText(String.valueOf(income));
+            ((HeadViewHolder)holder).textExpense.setText(String.valueOf(expense));
+            ((HeadViewHolder)holder).textBalance.setText(String.valueOf(balance));
+            if(balance>0){
+                ((HeadViewHolder)holder).textBalance.setTextColor(Color.parseColor("#4CAF9B"));
+            }
+            else {
+                ((HeadViewHolder)holder).textBalance.setTextColor(Color.parseColor("#F8838B"));
+            }
         }
 
     }
@@ -209,8 +252,11 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         else if(layout==1){
             return ITEM_TYPE.ITEM_TYPE_RECORD.ordinal();
         }
-        else{
+        else if(layout==2){
             return ITEM_TYPE.ITEM_TYPE_PIECHART.ordinal();
+        }
+        else{
+            return ITEM_TYPE.ITEM_TYPE_HEAD.ordinal();
         }
 
     }
