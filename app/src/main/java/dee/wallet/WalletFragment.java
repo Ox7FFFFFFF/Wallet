@@ -37,6 +37,7 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
 
+import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -71,7 +72,6 @@ public class WalletFragment extends Fragment {
     Button buttonSubmit;
 
     //FragmentHistoryUI
-    PieChart pieChart;
     private static RecyclerView historyView;
     private RecyclerView.LayoutManager historyLayoutManager;
 
@@ -149,11 +149,11 @@ public class WalletFragment extends Fragment {
 
                 if(!date.equals(newDate)){
                     newDate = date;
-                    RecordDetail dateDetail = new RecordDetail(-1,date);
+                    RecordDetail dateDetail = new RecordDetail(-1,date,0);
                     recordData.add(dateDetail);
                 }
 
-                RecordDetail recordDetail = new RecordDetail(id,name,cost,date,category,type);
+                RecordDetail recordDetail = new RecordDetail(id,name,cost,date,category,type,1);
                 recordData.add(recordDetail);
             }
         }
@@ -214,6 +214,7 @@ public class WalletFragment extends Fragment {
                 db.insert(DBHelper.RECORD_TABLE_NAME,null,contentValues);
                 Toast.makeText(getContext(),"Submit",Toast.LENGTH_SHORT).show();
                 LoadWalletDetailData();
+                LoadWalletHistoryData(0);
 
                 editName.setText("");
                 editDollar.setText("");
@@ -283,18 +284,6 @@ public class WalletFragment extends Fragment {
     }
 
     private void initWalletHistory(View view){
-        pieChart = (PieChart) view.findViewById(R.id.pie_chart);
-        pieChart.setUsePercentValues(true);
-        pieChart.getDescription().setEnabled(false);
-        pieChart.setExtraOffsets(5, 10, 5, 5);
-        pieChart.setCenterText("expense");
-        pieChart.setCenterTextSize(22f);
-        pieChart.setDrawCenterText(true);
-        pieChart.setRotationEnabled(false);
-        pieChart.setRotationAngle(0f);
-        Legend legend = pieChart.getLegend();
-        legend.setEnabled(false);
-
         historyView = (RecyclerView) view.findViewById(R.id.fragment_history_list);
         historyView.setHasFixedSize(true);
         historyLayoutManager = new LinearLayoutManager(getActivity());
@@ -306,6 +295,7 @@ public class WalletFragment extends Fragment {
         String SQL = "SELECT "+DBHelper.RECORD_TABLE_NAME+"._id , SUM("+DBHelper.RECORD_TABLE_NAME+"._cost),"+DBHelper.CATEGORY_TABLE_NAME+"._name FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.CATEGORY_TABLE_NAME+"._type="+index+" AND "+DBHelper.CATEGORY_TABLE_NAME+"._id="+DBHelper.RECORD_TABLE_NAME+"._category GROUP BY "+DBHelper.RECORD_TABLE_NAME+"._category" ;
         Cursor cursor = db.rawQuery(SQL,null);
         ArrayList <RecordDetail> historyData = new ArrayList<>();
+        historyData.add(new RecordDetail(0,"pie",0,2));
         int count = cursor.getCount();
         if(count>0){
             cursor.moveToFirst();
@@ -314,7 +304,7 @@ public class WalletFragment extends Fragment {
                 int id = cursor.getInt(0);
                 int cost = cursor.getInt(1);
                 String name = cursor.getString(2);
-                RecordDetail recordDetail = new RecordDetail(id,name,cost);
+                RecordDetail recordDetail = new RecordDetail(id,name,cost,1);
                 historyData.add(recordDetail);
             }
         }
@@ -322,46 +312,9 @@ public class WalletFragment extends Fragment {
 
         }
         cursor.close();
-        //TODO
         WalletAdapter adapter = new WalletAdapter(historyData);
         historyView.setAdapter(adapter);
-
-        Map<String,Integer> pieValues = new HashMap<>();
-        for(int j=0; j<historyData.size();j++){
-            pieValues.put(historyData.get(j).getName(),historyData.get(j).getCost());
-        }
-        setPieChartData(pieChart, pieValues);
-        pieChart.animateX(1500, Easing.EasingOption.EaseInOutQuad);
-
     }
-
-    public static final int[] PIE_COLORS = {
-            Color.rgb(181, 194, 202), Color.rgb(129, 216, 200), Color.rgb(241, 214, 145),
-            Color.rgb(108, 176, 223), Color.rgb(195, 221, 155), Color.rgb(251, 215, 191),
-            Color.rgb(237, 189, 189), Color.rgb(172, 217, 243)
-    };
-    private void setPieChartData(PieChart pieChart, Map<String,Integer> pieValues){
-        ArrayList<PieEntry> entries = new ArrayList<>();
-        Set set = pieValues.entrySet();
-        Iterator iterator = set.iterator();
-        while (iterator.hasNext()){
-            Map.Entry entry = (Map.Entry) iterator.next();
-            entries.add(new PieEntry(Float.valueOf(entry.getValue().toString()), entry.getKey().toString()));
-        }
-        PieDataSet dataSet = new PieDataSet(entries, "");
-        dataSet.setSliceSpace(3f);
-        dataSet.setSelectionShift(5f);
-        dataSet.setColors(PIE_COLORS);
-        dataSet.setYValuePosition(PieDataSet.ValuePosition.INSIDE_SLICE);
-        PieData pieData = new PieData(dataSet);
-        pieData.setValueFormatter(new PercentFormatter());
-        pieData.setValueTextSize(12f);
-        pieData.setValueTextColor(Color.DKGRAY);
-        pieChart.setData(pieData);
-        pieChart.highlightValues(null);
-        pieChart.invalidate();
-    }
-
 
     private void initWalletSetting(View view){
 

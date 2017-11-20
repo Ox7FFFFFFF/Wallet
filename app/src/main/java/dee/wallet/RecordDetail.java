@@ -11,25 +11,29 @@ public class RecordDetail {
     private String date;
     private String category;
     private int type;
+    private int layout;
 
-    public RecordDetail(int id, String name, int cost, String date, String category, int type) {
+    public RecordDetail(int id, String name, int cost, String date, String category, int type,int layout) {
         this.id = id;
         this.name = name;
         this.cost = cost;
         this.date = date;
         this.category = category;
         this.type = type;
+        this.layout = layout;
     }
 
-    public RecordDetail(int id, String name) {
+    public RecordDetail(int id, String name,int layout) {
         this.id = id;
         this.name = name;
+        this.layout = layout;
     }
 
-    public RecordDetail(int id, String name, int cost) {
+    public RecordDetail(int id, String name, int cost ,int layout) {
         this.id = id;
         this.name = name;
         this.cost = cost;
+        this.layout = layout;
     }
 
     public int getId() {
@@ -54,5 +58,9 @@ public class RecordDetail {
 
     public int getType() {
         return type;
+    }
+
+    public int getLayout() {
+        return layout;
     }
 }
