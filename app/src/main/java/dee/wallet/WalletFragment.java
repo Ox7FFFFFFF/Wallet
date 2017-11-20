@@ -74,7 +74,9 @@ public class WalletFragment extends Fragment {
     //FragmentHistoryUI
     private static RecyclerView historyView;
     private RecyclerView.LayoutManager historyLayoutManager;
-
+    private Button btnLastWeek;
+    private Button btnLastMonth;
+    private Button btnLastYear;
 
     public static WalletFragment newInstance(int index){
         WalletFragment fragment = new WalletFragment();
@@ -285,14 +287,50 @@ public class WalletFragment extends Fragment {
 
     private void initWalletHistory(View view){
         historyView = (RecyclerView) view.findViewById(R.id.fragment_history_list);
+        btnLastYear = (Button) view.findViewById(R.id.btn_last_year);
+        btnLastMonth = (Button) view.findViewById(R.id.btn_last_month);
+        btnLastWeek = (Button) view.findViewById(R.id.btn_last_week);
+
+        btnLastYear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        btnLastMonth.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        btnLastWeek.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
         historyView.setHasFixedSize(true);
         historyLayoutManager = new LinearLayoutManager(getActivity());
         historyView.setLayoutManager(historyLayoutManager);
-        LoadWalletHistoryData(0);
+        LoadWalletHistoryData(0,0);
     }
 
-    private void LoadWalletHistoryData(int index){
-        String SQL = "SELECT "+DBHelper.RECORD_TABLE_NAME+"._id , SUM("+DBHelper.RECORD_TABLE_NAME+"._cost),"+DBHelper.CATEGORY_TABLE_NAME+"._name FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.CATEGORY_TABLE_NAME+"._type="+index+" AND "+DBHelper.CATEGORY_TABLE_NAME+"._id="+DBHelper.RECORD_TABLE_NAME+"._category GROUP BY "+DBHelper.RECORD_TABLE_NAME+"._category" ;
+    private void LoadWalletHistoryData(int filterType,int index){
+        String SQL = "SELECT "+DBHelper.RECORD_TABLE_NAME+"._id , SUM("+DBHelper.RECORD_TABLE_NAME+"._cost),"+DBHelper.CATEGORY_TABLE_NAME+"._name FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.CATEGORY_TABLE_NAME+"._type="+index+" AND "+DBHelper.CATEGORY_TABLE_NAME+"._id="+DBHelper.RECORD_TABLE_NAME+"._category GROUP BY "+DBHelper.RECORD_TABLE_NAME+"._category";
+
+        if(filterType == 0){
+            
+        }
+        else if(filterType ==1){
+
+        }
+        else{
+
+        }
+
         Cursor cursor = db.rawQuery(SQL,null);
         ArrayList <RecordDetail> historyData = new ArrayList<>();
         historyData.add(new RecordDetail(0,"pie",0,2));
