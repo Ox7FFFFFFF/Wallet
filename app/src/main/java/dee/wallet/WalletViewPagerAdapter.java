@@ -16,14 +16,13 @@ public class WalletViewPagerAdapter extends FragmentPagerAdapter {
     private ArrayList<WalletFragment> fragments = new ArrayList<>();
     private WalletFragment currentFragment;
 
-    public WalletViewPagerAdapter(FragmentManager fm) {
+    public WalletViewPagerAdapter(FragmentManager fm,int year,int month) {
         super(fm);
         fragments.clear();
-        fragments.add(WalletFragment.newInstance(0));
-        fragments.add(WalletFragment.newInstance(1));
-        fragments.add(WalletFragment.newInstance(2));
-        fragments.add(WalletFragment.newInstance(3));
-        fragments.add(WalletFragment.newInstance(4));
+        fragments.add(WalletFragment.newInstance(0,year,month));
+        fragments.add(WalletFragment.newInstance(1,year,month));
+        fragments.add(WalletFragment.newInstance(2,year,month));
+        fragments.add(WalletFragment.newInstance(3,year,month));
     }
 
     @Override

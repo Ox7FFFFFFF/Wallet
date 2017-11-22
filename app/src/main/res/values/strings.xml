@@ -24,4 +24,12 @@
     <string name="fragment_detail_head_expense">Expenses</string>
     <string name="fragment_detail_head_income">Income</string>
     <string name="fragment_detail_head_balance">Balance</string>
+
+    <string name="fragment_setting_clock_sun">SUN</string>
+    <string name="fragment_setting_clock_mon">MON</string>
+    <string name="fragment_setting_clock_tue">TUE</string>
+    <string name="fragment_setting_clock_wed">WED</string>
+    <string name="fragment_setting_clock_thu">THU</string>
+    <string name="fragment_setting_clock_fri">FRI</string>
+    <string name="fragment_setting_clock_sat">SAT</string>
 </resources>

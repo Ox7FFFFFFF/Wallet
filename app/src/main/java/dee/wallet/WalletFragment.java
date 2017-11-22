@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
@@ -27,24 +28,8 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.github.mikephil.charting.animation.Easing;
-import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.PercentFormatter;
-
-import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * Created by Dee on 2017/11/8.
  *
@@ -53,23 +38,19 @@ import java.util.Set;
 public class WalletFragment extends Fragment {
     private FrameLayout fragmentContainer;
 
+    private int selectYear,selectMonth;
+
     //Database
     DBHelper dbHelper = null;
     SQLiteDatabase db;
 
     //FragmentDetailUI
     private static RecyclerView recyclerView;
-    private RecyclerView.LayoutManager layoutManager;
 
     //FragmentInputUI
-    EditText editName;
-    EditText editDollar;
-    TextView editDate;
-    RadioGroup radioGroupType;
-    RadioButton radioButtonIncome;
-    RadioButton radioButtonExpense;
-    Spinner spinnerCategory;
-    Button buttonSubmit;
+    private static RecyclerView inputView;
+    private ArrayList<RecordDetail> inputDetails;
+    private WalletAdapter inputAdapter;
 
     //FragmentHistoryUI
     private static RecyclerView historyView;
@@ -77,10 +58,17 @@ public class WalletFragment extends Fragment {
     private Button btnExpense;
     private Button btnIncome;
 
-    public static WalletFragment newInstance(int index){
+    //FragmentSettingUI
+    private static RecyclerView clockView;
+    private ArrayList <RecordDetail> clockData;
+    private WalletAdapter clockAdapter;
+
+    public static WalletFragment newInstance(int index,int year,int month){
         WalletFragment fragment = new WalletFragment();
         Bundle b = new Bundle();
         b.putInt("index",index);
+        b.putInt("year",year);
+        b.putInt("month",month);
         fragment.setArguments(b);
         return fragment;
     }
@@ -89,23 +77,20 @@ public class WalletFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         int index = getArguments().getInt("index",0);
+        selectYear = getArguments().getInt("year",2017);
+        selectMonth = getArguments().getInt("month",1);
         openDB();
         if(index == 0){
-            View view = inflater.inflate(R.layout.fragment_home,container,false);
-            initWalletHome(view);
-            return view;
-        }
-        else if(index==1){
             View view = inflater.inflate(R.layout.fragment_list,container,false);
             initWalletList(view);
             return view;
         }
-        else if(index==2){
+        else if(index==1){
             View view = inflater.inflate(R.layout.fragment_input,container,false);
             initWalletInput(view);
             return view;
         }
-        else if(index==3){
+        else if(index==2){
             View view = inflater.inflate(R.layout.fragment_history,container,false);
             initWalletHistory(view);
             return view;
@@ -117,15 +102,10 @@ public class WalletFragment extends Fragment {
         }
     }
 
-    private void initWalletHome(View view){
-        MainActivity mainActivity = (MainActivity) getActivity();
-        TextView textView = view.findViewById(R.id.text_balance);
-        //~~~~~~~~~~
-    }
-
     private void initWalletList(View view){
         recyclerView = (RecyclerView) view.findViewById(R.id.fragment_list);
         recyclerView.setHasFixedSize(true);
+        RecyclerView.LayoutManager layoutManager;
         layoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(layoutManager);
         LoadWalletDetailData();
@@ -154,10 +134,12 @@ public class WalletFragment extends Fragment {
         recordData.add(new RecordDetail(expense,income,3));
         cursorHead.close();
         //Record
-        String SQL = "SELECT * FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.RECORD_TABLE_NAME+"._category="+DBHelper.CATEGORY_TABLE_NAME+"._id ORDER BY "+DBHelper.RECORD_TABLE_NAME+"._date DESC,"+DBHelper.RECORD_TABLE_NAME+"._id DESC";
+        String SQL = "SELECT * FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.RECORD_TABLE_NAME+"._category="+DBHelper.CATEGORY_TABLE_NAME+"._id ORDER BY DATETIME("+DBHelper.RECORD_TABLE_NAME+"._date) DESC,"+DBHelper.RECORD_TABLE_NAME+"._id DESC";
         Cursor cursor = db.rawQuery(SQL,null);
         int count = cursor.getCount();
         String newDate="";
+        boolean isFirst = true;
+        ArrayList<RecordDetail> tmp = new ArrayList<>();
         if(count>0){
             cursor.moveToFirst();
             for(int i = 0; i<count;i++){
@@ -170,63 +152,79 @@ public class WalletFragment extends Fragment {
                 int type = cursor.getInt(6);
 
                 if(!date.equals(newDate)){
+                    if(isFirst){
+                        isFirst = false;
+                    }
+                    else{
+                        RecordDetail mergeData = new RecordDetail(tmp,4);
+                        recordData.add(mergeData);
+                    }
                     newDate = date;
+                    tmp.clear();
                     RecordDetail dateDetail = new RecordDetail(-1,date,0);
-                    recordData.add(dateDetail);
+                    tmp.add(dateDetail);
                 }
 
                 RecordDetail recordDetail = new RecordDetail(id,name,cost,date,category,type,1);
-                recordData.add(recordDetail);
+                tmp.add(recordDetail);
             }
+            RecordDetail mergeData = new RecordDetail(tmp,4);
+            recordData.add(mergeData);
         }
         else{
 
         }
         cursor.close();
-        WalletAdapter adapter = new WalletAdapter(recordData);
+        WalletAdapter adapter = new WalletAdapter(recordData,getContext());
         recyclerView.setAdapter(adapter);
     }
 
     private void initWalletInput(View view){
-        editName = (EditText) view.findViewById(R.id.edit_name);
-        editDollar = (EditText) view.findViewById(R.id.edit_dollar);
-        editDate = (TextView) view.findViewById(R.id.edit_date);
-        radioGroupType = (RadioGroup) view.findViewById(R.id.radioGroup_type);
-        radioButtonIncome = (RadioButton) view.findViewById(R.id.radioButton_income);
-        radioButtonExpense = (RadioButton) view.findViewById(R.id.radioButton_expense);
-        spinnerCategory = (Spinner) view.findViewById(R.id.spinner_category);
-        buttonSubmit = (Button) view.findViewById(R.id.btn_submit);
+        //Initial UI
+        inputView = (RecyclerView) view.findViewById(R.id.fragment_input_list);
+        inputView.setHasFixedSize(true);
+        RecyclerView.LayoutManager layoutManager;
+        layoutManager = new LinearLayoutManager(getActivity());
+        inputView.setLayoutManager(layoutManager);
 
-        final Calendar c = Calendar.getInstance();
-        final int mYear = c.get(Calendar.YEAR);
-        final int mMonth = c.get(Calendar.MONTH);
-        final int mDay = c.get(Calendar.DAY_OF_MONTH);
-        editDate.setText(setDateFormat(mYear,mMonth,mDay));
-        editDate.setOnClickListener(new View.OnClickListener() {
+        //Initial data value
+        final String[] titles = {"Name","Cost","Date","Type","Category","Submit"};
+        final int[] layouts = {5,5,6,8,9,7};
+        LoadSpinner();
+        final String[] values = {"","","","0",expenseCategory,""};
+        inputDetails = new ArrayList<>();
+        for(int i=0;i<titles.length;i++){
+            inputDetails.add(new RecordDetail(titles[i],values[i],layouts[i]));
+        }
+        inputAdapter = new WalletAdapter(inputDetails,getContext());
+        inputAdapter.setOnTextChangeListener(new onTextChangeListener() {
             @Override
-            public void onClick(View v) {
-                new DatePickerDialog(getContext(), new DatePickerDialog.OnDateSetListener() {
-                    @Override
-                    public void onDateSet(DatePicker view, int year, int month, int day) {
-                        String format = setDateFormat(year,month,day);
-                        editDate.setText(format);
+            public void onTextChanged(int pos,RecordDetail input,boolean isUpdate) {
+                inputDetails.set(pos,input);
+                if(input.getLayout()==8){
+                    //update spinner
+                    int type = Integer.valueOf(input.getValue());
+                    if(type==0){
+                        inputAdapter.updateItem(4,expenseCategory);
                     }
-                }, mYear,mMonth, mDay).show();
+                    else{
+                        inputAdapter.updateItem(4,incomeCategory);
+                    }
+//                    inputAdapter.notifyItemChanged(4);
+                }
             }
         });
-        radioGroupType.setOnCheckedChangeListener(onCheckedChangeListener);
-        radioButtonExpense.setChecked(true);
-        LoadSpinner(0);
-
-        buttonSubmit.setOnClickListener(new View.OnClickListener() {
+        inputAdapter.setOnButtonClickListener(new onButtonClickListener() {
             @Override
-            public void onClick(View view) {
-                String name = editName.getText().toString();
-                int cost = Integer.parseInt(editDollar.getText().toString());
-                String date = editDate.getText().toString();
-                int type = (radioButtonExpense.isChecked())?0:1;
-//                cost = type==0 ? -cost:cost;
-                String type_name = spinnerCategory.getSelectedItem().toString();
+            public void onButtonClick() {
+//                for(int i=0;i<inputDetails.size();i++){
+//                    Log.e("value",inputDetails.get(i).getValue());
+//                }
+                String name = inputDetails.get(0).getValue();
+                int cost = Integer.parseInt(inputDetails.get(1).getValue());
+                String date = inputDetails.get(2).getValue();
+                int type = Integer.valueOf(inputDetails.get(3).getValue());
+                String type_name = inputDetails.get(4).getValue();
                 int category = queryCategory(type,type_name);
                 ContentValues contentValues = new ContentValues();
                 contentValues.put("_name",name);
@@ -237,22 +235,12 @@ public class WalletFragment extends Fragment {
                 Toast.makeText(getContext(),"Submit",Toast.LENGTH_SHORT).show();
                 LoadWalletDetailData();
                 LoadWalletHistoryData(0);
-
-                editName.setText("");
-                editDollar.setText("");
-                editDate.setText(setDateFormat(mYear,mMonth,mDay));
-                radioButtonExpense.setChecked(true);
-                LoadSpinner(0);
             }
         });
-
+        inputView.setAdapter(inputAdapter);
+        inputView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
     }
 
-    private String setDateFormat(int year,int monthOfYear,int dayOfMonth){
-        return String.valueOf(year) + "-"
-                + String.valueOf(monthOfYear + 1) + "-"
-                + String.valueOf(dayOfMonth);
-    }
 
     private int queryCategory(int type,String name){
         String SQL = "SELECT * FROM "+DBHelper.CATEGORY_TABLE_NAME+" WHERE _type="+type+" AND _name='"+name+"'";
@@ -266,43 +254,33 @@ public class WalletFragment extends Fragment {
         }
     }
 
-    private RadioGroup.OnCheckedChangeListener onCheckedChangeListener = new RadioGroup.OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(RadioGroup group, int checkedId) {
-            switch (checkedId){
-                case R.id.radioButton_expense:
-                    LoadSpinner(0);
-                    Log.d("type","expense");
-                    break;
-                case R.id.radioButton_income:
-                    Log.d("type","income");
-                    LoadSpinner(1);
-                    break;
-            }
-        }
-    };
-
     /***
      *
      * @param index 1=income 0=expense
      */
-    private void LoadSpinner(int index){
-        String SQL = "SELECT * FROM "+DBHelper.CATEGORY_TABLE_NAME+" WHERE _type="+index;
-        Cursor cursor = db.rawQuery(SQL,null);
+    private String expenseCategory ="";
+    private String incomeCategory = "";
+
+    private void LoadSpinner(){
+        String SQL = "SELECT * FROM " + DBHelper.CATEGORY_TABLE_NAME;
+        Cursor cursor = db.rawQuery(SQL, null);
         int count = cursor.getCount();
-        if(count>0){
-            String[] categoryList = new String[count];
+        if (count > 0) {
             cursor.moveToFirst();
-            for(int i=0;i<count;i++){
+            for (int i = 0; i < count; i++) {
                 cursor.moveToPosition(i);
-                categoryList[i] = cursor.getString(2);
+                int type = cursor.getInt(1);
+                if (type == 0) {
+                    expenseCategory += cursor.getString(2) + "-";
+                } else {
+                    incomeCategory += cursor.getString(2) + "-";
+                }
             }
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_dropdown_item,categoryList);
-            spinnerCategory.setAdapter(adapter);
         }
-        else{
+        else {
 
         }
+        cursor.close();
     }
 
     private void initWalletHistory(View view){
@@ -327,6 +305,7 @@ public class WalletFragment extends Fragment {
         historyView.setHasFixedSize(true);
         historyLayoutManager = new LinearLayoutManager(getActivity());
         historyView.setLayoutManager(historyLayoutManager);
+        historyView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
         LoadWalletHistoryData(0);
     }
 
@@ -335,7 +314,7 @@ public class WalletFragment extends Fragment {
 
         Cursor cursor = db.rawQuery(SQL,null);
         ArrayList <RecordDetail> historyData = new ArrayList<>();
-        historyData.add(new RecordDetail(0,"pie",0,0,2));
+        historyData.add(new RecordDetail(0,"pie",0,index,2));
         int count = cursor.getCount();
         if(count>0){
             cursor.moveToFirst();
@@ -353,11 +332,66 @@ public class WalletFragment extends Fragment {
 
         }
         cursor.close();
-        WalletAdapter adapter = new WalletAdapter(historyData);
+        WalletAdapter adapter = new WalletAdapter(historyData,getContext());
         historyView.setAdapter(adapter);
     }
 
     private void initWalletSetting(View view){
+        clockView = (RecyclerView) view.findViewById(R.id.fragment_clock_list);
+        clockView.setHasFixedSize(true);
+        RecyclerView.LayoutManager layoutManager;
+        layoutManager = new LinearLayoutManager(getActivity());
+        clockView.setLayoutManager(layoutManager);
+        LoadWalletSettingData();
+    }
+
+    private void LoadWalletSettingData(){
+        String SQL = "SELECT * FROM "+DBHelper.CLOCK_TABLE_NAME ;
+
+        Cursor cursor = db.rawQuery(SQL,null);
+        clockData = new ArrayList<>();
+        int count = cursor.getCount();
+        if(count>0){
+            cursor.moveToFirst();
+            for(int i = 0; i<count;i++){
+                cursor.moveToPosition(i);
+                int id = cursor.getInt(0);
+                int hour = cursor.getInt(1);
+                int minute = cursor.getInt(2);
+                String duration = cursor.getString(3);
+                ArrayList<Integer> durationList = new ArrayList<>();
+                for(int j=0;j<duration.length();j++){
+                    char c = duration.charAt(j);
+                    if(c=='1'){
+                        durationList.add(1);
+                    }
+                    else{
+                        durationList.add(0);
+                    }
+                }
+                int turn = cursor.getInt(4);
+                RecordDetail recordDetail = new RecordDetail(id,hour,minute,durationList,turn,10);
+                clockData.add(recordDetail);
+            }
+        }
+        else{
+
+        }
+        cursor.close();
+        clockAdapter = new WalletAdapter(clockData,getContext());
+        clockAdapter.setOnTextChangeListener(new onTextChangeListener() {
+            @Override
+            public void onTextChanged(int pos, RecordDetail input,boolean isUpdate) {
+                if(isUpdate){
+                    clockData.set(pos,input);
+                    clockAdapter.updateDuration(pos,input);
+                    Log.e("duration",input.getDuration().toString());
+//                clockAdapter.notifyItemChanged(pos);
+                }
+            }
+
+        });
+        clockView.setAdapter(clockAdapter);
 
     }
 

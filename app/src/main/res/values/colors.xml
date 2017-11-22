@@ -3,13 +3,15 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#0CB890</color>
+    <color name="colorForDateChoose">#0a99b2</color>
     <array name="tab_colors">
         <item name="tab_1">#455C65</item>
         <item name="tab_2">#00886A</item>
         <item name="tab_3">#8B6B62</item>
         <item name="tab_4">#6C4A42</item>
-        <item name="tab_5">#F63D2B</item>
     </array>
     <color name="colorExpense">#F8838B</color>
     <color name="colorIncome">#4CAF9B</color>
+    <color name="colorBlack">#0c0c0c</color>
+    <color name="defaultText">#808080</color>
 </resources>
