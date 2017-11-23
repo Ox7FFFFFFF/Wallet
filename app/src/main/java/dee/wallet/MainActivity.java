@@ -1,5 +1,8 @@
 package dee.wallet;
 
+import android.content.ContentValues;
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -28,6 +31,11 @@ import java.util.Calendar;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+    //Database
+    DBHelper dbHelper = null;
+    SQLiteDatabase db;
+
+    public static int requestCodeClock = 1;
     private WalletFragment currentFragment;
     private WalletViewPagerAdapter adapter;
     private AHBottomNavigationViewPager viewPager;
@@ -41,8 +49,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        openDB();
         initDate();
         initUI();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        closeDB();
     }
 
     @Override
@@ -145,5 +161,38 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setOffscreenPageLimit(3);
         adapter = new WalletViewPagerAdapter(getSupportFragmentManager(),selectYear,selectMonth);
         viewPager.setAdapter(adapter);
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(resultCode == requestCodeClock){
+            int id = data.getExtras().getInt("id",1);
+            int hour = data.getExtras().getInt("hour",12);
+            int minute = data.getExtras().getInt("minute",30);
+            String duration = data.getExtras().getString("duration","0000000");
+            Log.e("duration",duration);
+            String where = "_id = "+id;
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("_id",id);
+            contentValues.put("_hour",hour);
+            contentValues.put("_minute",minute);
+            contentValues.put("_duration",duration);
+            db.update(DBHelper.CLOCK_TABLE_NAME,contentValues,where,null);
+
+            adapter.updateSettingFragment();
+            viewPager.setAdapter(adapter);
+            viewPager.setCurrentItem(3);
+        }
+    }
+
+    private void openDB(){
+        dbHelper = new DBHelper(MainActivity.this);
+//        getContext().deleteDatabase(DBHelper.DATABASE_NAME);
+        db = dbHelper.getWritableDatabase();
+    }
+
+    private void closeDB(){
+        dbHelper.close();
     }
 }

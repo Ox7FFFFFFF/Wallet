@@ -15,6 +15,8 @@ import java.util.ArrayList;
 public class WalletViewPagerAdapter extends FragmentPagerAdapter {
     private ArrayList<WalletFragment> fragments = new ArrayList<>();
     private WalletFragment currentFragment;
+    private int year;
+    private int month;
 
     public WalletViewPagerAdapter(FragmentManager fm,int year,int month) {
         super(fm);
@@ -23,6 +25,8 @@ public class WalletViewPagerAdapter extends FragmentPagerAdapter {
         fragments.add(WalletFragment.newInstance(1,year,month));
         fragments.add(WalletFragment.newInstance(2,year,month));
         fragments.add(WalletFragment.newInstance(3,year,month));
+        this.year = year;
+        this.month = month;
     }
 
     @Override
@@ -45,5 +49,11 @@ public class WalletViewPagerAdapter extends FragmentPagerAdapter {
 
     public WalletFragment getCurrentFragment(){
         return currentFragment;
+    }
+
+    public void updateSettingFragment(){
+        fragments.remove(3);
+        fragments.add(WalletFragment.newInstance(3,year,month));
+        notifyDataSetChanged();
     }
 }

@@ -2,6 +2,7 @@ package dee.wallet;
 
 import android.app.DatePickerDialog;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
@@ -389,7 +390,20 @@ public class WalletFragment extends Fragment {
 //                clockAdapter.notifyItemChanged(pos);
                 }
             }
-
+        });
+        clockAdapter.setOnButtonClickResultListener(new onButtonClickResultListener() {
+            @Override
+            public void onButtonClickResult(RecordDetail recordDetail) {
+                Intent intent = new Intent(getContext(),ClockActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putBoolean("functionCode",true);
+                bundle.putInt("id",recordDetail.getId());
+                bundle.putInt("hour",recordDetail.getHour());
+                bundle.putInt("minute",recordDetail.getMinute());
+                bundle.putIntegerArrayList("duration",recordDetail.getDuration());
+                intent.putExtras(bundle);
+                getActivity().startActivityForResult(intent,MainActivity.requestCodeClock);
+            }
         });
         clockView.setAdapter(clockAdapter);
 

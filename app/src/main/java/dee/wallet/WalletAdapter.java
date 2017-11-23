@@ -3,6 +3,7 @@ package dee.wallet;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.hardware.usb.UsbAccessory;
 import android.os.Handler;
@@ -62,6 +63,7 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private ArrayList<RecordDetail> mDataset = new ArrayList<>();
     private onTextChangeListener mTextListener;
     private onButtonClickListener mButtonListener;
+    private onButtonClickResultListener mButtonClickResultListener;
     private Context context;
     private ArrayList<Integer> duration = new ArrayList<>();
     private final Calendar c = Calendar.getInstance();
@@ -466,60 +468,26 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             final int minute = recordDetail.getMinute();
             duration = recordDetail.getDuration();
             int turn = recordDetail.getTurn();
-            ((ClockViewHolder)holder).textClock.setText(String.valueOf(hour+":"+minute));
-            ((ClockViewHolder)holder).aSwitch.setChecked(turn==1);
 
+            ((ClockViewHolder)holder).textClock.setText(String.valueOf(new DecimalFormat("00").format(hour)+":"+new DecimalFormat("00").format(minute)));
+            ((ClockViewHolder)holder).aSwitch.setChecked(turn==1);
             ((ClockViewHolder)holder).aSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    String[] tokens = clockViewHolder.textClock.getText().toString().split(":");
-                    int hour = Integer.valueOf(tokens[0]);
-                    int minute = Integer.valueOf(tokens[1]);
                     int turn = (isChecked)?1:0;
                     mTextListener.onTextChanged(position,new RecordDetail(id,hour,minute,duration,turn,10),false);
                 }
             });
 
-            ArrayList<TextView> weekdays = new ArrayList<>();
-            weekdays.add(((ClockViewHolder)holder).textSun);
-            weekdays.add(((ClockViewHolder)holder).textMon);
-            weekdays.add(((ClockViewHolder)holder).textTue);
-            weekdays.add(((ClockViewHolder)holder).textWed);
-            weekdays.add(((ClockViewHolder)holder).textThu);
-            weekdays.add(((ClockViewHolder)holder).textFri);
-            weekdays.add(((ClockViewHolder)holder).textSat);
-            for(int i=0;i<7;i++){
-                setDurationWeekday((ClockViewHolder)holder,i,duration.get(i));
-                final int pos = i;
-                weekdays.get(i).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        String[] tokens = clockViewHolder.textClock.getText().toString().split(":");
-                        int hour = Integer.valueOf(tokens[0]);
-                        int minute = Integer.valueOf(tokens[1]);
-                        duration.set(pos,(duration.get(pos)==1)?0:1);
-                        int turn = (clockViewHolder.aSwitch.isChecked())?1:0;
-                        mTextListener.onTextChanged(position,new RecordDetail(id,hour,minute,duration,turn,10),true);
-                    }
-                });
-            }
-
-            ((ClockViewHolder)holder).textClock.setOnClickListener(new View.OnClickListener() {
+            ((ClockViewHolder)holder).cardView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    new TimePickerDialog(context, new TimePickerDialog.OnTimeSetListener() {
-                        @Override
-                        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-//                            Log.e("time",String.valueOf(new DecimalFormat("00").format(hourOfDay)+":"+new DecimalFormat("00").format(minute)));
-                            clockViewHolder.textClock.setText(String.valueOf(new DecimalFormat("00").format(hourOfDay)+":"+new DecimalFormat("00").format(minute)));
-                            //TODO update textclock & alarm management
-
-                        }
-                    },hour,minute,true).show();
+                    mButtonClickResultListener.onButtonClickResult(new RecordDetail(id,hour,minute,duration,0,10));
                 }
             });
-
-
+            for(int i=0;i<7;i++) {
+                setDurationWeekday((ClockViewHolder)holder,i,duration.get(i));
+            }
         }
     }
 
@@ -682,6 +650,10 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         mButtonListener = onButtonClickListener;
     }
 
+    public void setOnButtonClickResultListener(onButtonClickResultListener onButtonClickResultListener){
+        mButtonClickResultListener = onButtonClickResultListener;
+    }
+
     public void updateItem(int position,String value) {
         RecordDetail newRecordDetail = mDataset.get(position);
         newRecordDetail.setValue(value);
@@ -699,5 +671,7 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         };
         handler.post(r);
     }
+
+
 
 }

@@ -32,4 +32,6 @@
     <string name="fragment_setting_clock_thu">THU</string>
     <string name="fragment_setting_clock_fri">FRI</string>
     <string name="fragment_setting_clock_sat">SAT</string>
+
+    <string name="activity_clock_weekday">Weekday</string>
 </resources>
