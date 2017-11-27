@@ -1,11 +1,13 @@
 package dee.wallet;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.hardware.usb.UsbAccessory;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.CardView;
@@ -67,6 +69,7 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private Context context;
     private ArrayList<Integer> duration = new ArrayList<>();
     private final Calendar c = Calendar.getInstance();
+    private Activity activity;
 
     public enum ITEM_TYPE {
         ITEM_TYPE_DATE,
@@ -221,6 +224,14 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         this.context = context;
     }
 
+
+    public WalletAdapter(ArrayList<RecordDetail> dataset,Context context,Activity activity) {
+        mDataset.clear();
+        mDataset.addAll(dataset);
+        this.context = context;
+        this.activity = activity;
+    }
+
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if(viewType == ITEM_TYPE.ITEM_TYPE_DATE.ordinal()){
@@ -271,7 +282,7 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
-        RecordDetail recordDetail = mDataset.get(position);
+        final RecordDetail recordDetail = mDataset.get(position);
         if(holder instanceof DateViewHolder){
             ((DateViewHolder)holder).textdate.setText(setDateRegularFormat(recordDetail.getName()));
         }
@@ -289,7 +300,7 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             ((RecordViewHolder)holder).constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    mButtonClickResultListener.onButtonClickResult(recordDetail);
                 }
             });
         }
@@ -346,7 +357,22 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             ArrayList<RecordDetail> mergeData = new ArrayList<>();
             mergeData.clear();
             mergeData.addAll(recordDetail.getRecordDetails());
-            WalletAdapter adapter = new WalletAdapter(mergeData,context);
+            WalletAdapter adapter = new WalletAdapter(mergeData,context,activity);
+            adapter.setOnButtonClickResultListener(new onButtonClickResultListener() {
+                @Override
+                public void onButtonClickResult(RecordDetail recordDetail) {
+                    Intent intent = new Intent(context,RecordActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("id",recordDetail.getId());
+                    bundle.putString("name",recordDetail.getName());
+                    bundle.putInt("cost",recordDetail.getCost());
+                    bundle.putString("date",recordDetail.getDate());
+                    bundle.putInt("type",recordDetail.getType());
+                    bundle.putString("category",recordDetail.getCategory());
+                    intent.putExtras(bundle);
+                    activity.startActivityForResult(intent,MainActivity.requestCodeRecord);
+                }
+            });
             ((CardViewHolder)holder).recyclerView.setAdapter(adapter);
             ((CardViewHolder)holder).recyclerView.addItemDecoration(new DividerItemDecoration(context,DividerItemDecoration.VERTICAL));
         }
@@ -385,25 +411,31 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             final int mYear = c.get(Calendar.YEAR);
             final int mMonth = c.get(Calendar.MONTH);
             final int mDay = c.get(Calendar.DAY_OF_MONTH);
+            boolean isClick = recordDetail.isClick();
 
-            ((TextViewHolder)holder).textTitle.setText(recordDetail.getTitle());
-            String format = setDateFormat(mYear,mMonth,mDay);
-            ((TextViewHolder)holder).textValue.setText(setDateFormat(mYear,mMonth,mDay));
-            mTextListener.onTextChanged(position,new RecordDetail(title,format,6),true);
+            if(isClick){
+                String format = setDateFormat(mYear,mMonth,mDay);
+                ((TextViewHolder)holder).textValue.setText(setDateFormat(mYear,mMonth,mDay));
+                mTextListener.onTextChanged(position,new RecordDetail(title,format,6),true);
 
-            ((TextViewHolder)holder).textConstraintLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    new DatePickerDialog(v.getContext(), new DatePickerDialog.OnDateSetListener() {
+                ((TextViewHolder)holder).textConstraintLayout.setOnClickListener(new View.OnClickListener() {
                     @Override
-                        public void onDateSet(DatePicker view, int year, int month, int day) {
-                            String format = setDateFormat(year,month,day);
-                            textViewHolder.textValue.setText(format);
-                            mTextListener.onTextChanged(position,new RecordDetail(title,format,6),true);
-                        }
-                    }, mYear,mMonth, mDay).show();
-                }
-            });
+                    public void onClick(View v) {
+                        new DatePickerDialog(v.getContext(), new DatePickerDialog.OnDateSetListener() {
+                            @Override
+                            public void onDateSet(DatePicker view, int year, int month, int day) {
+                                String format = setDateFormat(year,month,day);
+                                textViewHolder.textValue.setText(format);
+                                mTextListener.onTextChanged(position,new RecordDetail(title,format,6),true);
+                            }
+                        }, mYear,mMonth, mDay).show();
+                    }
+                });
+            }
+            else{
+                ((TextViewHolder)holder).textValue.setText(recordDetail.getValue());
+            }
+            ((TextViewHolder)holder).textTitle.setText(recordDetail.getTitle());
         }
         else if(holder instanceof ButtonViewHolder){
             ((ButtonViewHolder)holder).btnSubmit.setOnClickListener(new View.OnClickListener() {

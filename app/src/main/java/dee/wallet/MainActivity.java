@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     SQLiteDatabase db;
 
     public static int requestCodeClock = 1;
+    public static int requestCodeRecord = 2;
     private WalletFragment currentFragment;
     private WalletViewPagerAdapter adapter;
     private AHBottomNavigationViewPager viewPager;
@@ -61,27 +62,6 @@ public class MainActivity extends AppCompatActivity {
         closeDB();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
     private void initDate(){
         final TextView textDate = (TextView) findViewById(R.id.text_date);
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.toolbar_layout);
@@ -167,18 +147,32 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(resultCode == requestCodeClock){
-            int id = data.getExtras().getInt("id",1);
-            int hour = data.getExtras().getInt("hour",12);
-            int minute = data.getExtras().getInt("minute",30);
-            String duration = data.getExtras().getString("duration","0000000");
-            Log.e("duration",duration);
-            String where = "_id = "+id;
-            ContentValues contentValues = new ContentValues();
-            contentValues.put("_id",id);
-            contentValues.put("_hour",hour);
-            contentValues.put("_minute",minute);
-            contentValues.put("_duration",duration);
-            db.update(DBHelper.CLOCK_TABLE_NAME,contentValues,where,null);
+            boolean functionCode = data.getExtras().getBoolean("functionCode");
+            if(functionCode){
+                int id = data.getExtras().getInt("id",1);
+                int hour = data.getExtras().getInt("hour",12);
+                int minute = data.getExtras().getInt("minute",30);
+                String duration = data.getExtras().getString("duration","0000000");
+                Log.e("duration",duration);
+                String where = "_id = "+id;
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("_id",id);
+                contentValues.put("_hour",hour);
+                contentValues.put("_minute",minute);
+                contentValues.put("_duration",duration);
+                db.update(DBHelper.CLOCK_TABLE_NAME,contentValues,where,null);
+            }
+            else{
+                int hour = data.getExtras().getInt("hour",12);
+                int minute = data.getExtras().getInt("minute",30);
+                String duration = data.getExtras().getString("duration","0000000");
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("_hour",hour);
+                contentValues.put("_minute",minute);
+                contentValues.put("_duration",duration);
+                contentValues.put("_turn",1);
+                db.insert(DBHelper.CLOCK_TABLE_NAME,null,contentValues);
+            }
 
             adapter.updateSettingFragment();
             viewPager.setAdapter(adapter);

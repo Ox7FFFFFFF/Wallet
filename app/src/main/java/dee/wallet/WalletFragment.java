@@ -15,6 +15,9 @@ import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -83,6 +86,7 @@ public class WalletFragment extends Fragment {
         openDB();
         if(index == 0){
             View view = inflater.inflate(R.layout.fragment_list,container,false);
+            setHasOptionsMenu(true);
             initWalletList(view);
             return view;
         }
@@ -98,9 +102,35 @@ public class WalletFragment extends Fragment {
         }
         else {
             View view = inflater.inflate(R.layout.fragment_setting,container,false);
+            setHasOptionsMenu(true);
             initWalletSetting(view);
             return view;
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        int index = getArguments().getInt("index",0);
+        if(index == 3){
+            inflater.inflate(R.menu.menu_setting, menu);
+        }
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if(id == R.id.action_addClock){
+            Intent intent = new Intent(getContext(),ClockActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putBoolean("functionCode",false);
+            intent.putExtras(bundle);
+            getActivity().startActivityForResult(intent,MainActivity.requestCodeClock);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private void initWalletList(View view){
@@ -176,7 +206,7 @@ public class WalletFragment extends Fragment {
 
         }
         cursor.close();
-        WalletAdapter adapter = new WalletAdapter(recordData,getContext());
+        WalletAdapter adapter = new WalletAdapter(recordData,getContext(),getActivity());
         recyclerView.setAdapter(adapter);
     }
 
@@ -383,12 +413,13 @@ public class WalletFragment extends Fragment {
         clockAdapter.setOnTextChangeListener(new onTextChangeListener() {
             @Override
             public void onTextChanged(int pos, RecordDetail input,boolean isUpdate) {
-                if(isUpdate){
-                    clockData.set(pos,input);
-                    clockAdapter.updateDuration(pos,input);
-                    Log.e("duration",input.getDuration().toString());
-//                clockAdapter.notifyItemChanged(pos);
-                }
+                clockData.set(pos,input);
+                int id = input.getId();
+                int turn = input.getTurn();
+                String where = "_id = "+id;
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("_turn",turn);
+                db.update(DBHelper.CLOCK_TABLE_NAME,contentValues,where,null);
             }
         });
         clockAdapter.setOnButtonClickResultListener(new onButtonClickResultListener() {

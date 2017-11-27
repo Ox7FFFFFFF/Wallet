@@ -14,6 +14,8 @@ import android.widget.TimePicker;
 
 import java.util.ArrayList;
 
+
+//TODO change layout
 public class ClockActivity extends AppCompatActivity {
     private TimePicker timePicker;
     private LinearLayout linearLayout;
@@ -46,15 +48,9 @@ public class ClockActivity extends AppCompatActivity {
             editMinute = 0;
             durationList = new ArrayList<>();
             for(int i=0;i<7;i++){
-                durationList.add(0);
+                durationList.add(1);
             }
         }
-        final int id = bundle.getInt("id");
-        editHour = bundle.getInt("hour");
-        editMinute = bundle.getInt("minute");
-        durationList = new ArrayList<>();
-        durationList.clear();
-        durationList.addAll(bundle.getIntegerArrayList("duration"));
 
         timePicker = (TimePicker) findViewById(R.id.timePicker);
         linearLayout = (LinearLayout) findViewById(R.id.linearClock);
@@ -114,12 +110,7 @@ public class ClockActivity extends AppCompatActivity {
         }
         textWeekday.setText(msg);
 
-        if(functionCode){
-            btnAddClock.setText("Finish");
-        }
-        else{
-            btnAddClock.setText("Add Clock");
-        }
+        btnAddClock.setText("Finish");
         btnAddClock.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -134,6 +125,7 @@ public class ClockActivity extends AppCompatActivity {
                 if(functionCode){
                     bundle.putInt("id",id);
                 }
+                bundle.putBoolean("functionCode",functionCode);
                 bundle.putInt("hour",editHour);
                 bundle.putInt("minute",editMinute);
                 bundle.putString("duration",duration);

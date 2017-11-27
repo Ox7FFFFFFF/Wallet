@@ -20,9 +20,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ClockActivity" />
         <activity
-            android:theme="@style/AppTheme"
-            android:name=".ClockActivity"/>
+            android:name=".RecordActivity"
+            android:label="@string/title_activity_record"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

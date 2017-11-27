@@ -19,8 +19,8 @@ public class RecordDetail {
     private int hour;
     private int minute;
     private int turn;
+    private boolean isClick;
     private ArrayList<Integer> duration = new ArrayList<>();
-
     private ArrayList<RecordDetail> recordDetails = new ArrayList<>();
 
     public RecordDetail(int id, String name, int cost, String date, String category, int type,int layout) {
@@ -63,6 +63,14 @@ public class RecordDetail {
         this.title = title;
         this.value = value;
         this.layout = layout;
+        isClick = true;
+    }
+
+    public RecordDetail(String title, String value ,int layout,boolean isClick) {
+        this.title = title;
+        this.value = value;
+        this.layout = layout;
+        this.isClick = isClick;
     }
 
     public RecordDetail(int id, int hour, int minute, ArrayList<Integer> duration, int turn, int layout) {
@@ -132,5 +140,9 @@ public class RecordDetail {
 
     public ArrayList<Integer> getDuration() {
         return duration;
+    }
+
+    public boolean isClick() {
+        return isClick;
     }
 }

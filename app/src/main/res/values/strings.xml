@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Wallet</string>
     <string name="action_settings">Settings</string>
+    <string name="action_addClock">Add Clock</string>
     <string name="menu_1">All</string>
     <string name="menu_2">Detail</string>
     <string name="menu_3">Record</string>
@@ -34,4 +35,5 @@
     <string name="fragment_setting_clock_sat">SAT</string>
 
     <string name="activity_clock_weekday">Weekday</string>
+    <string name="title_activity_record">RecordActivity</string>
 </resources>
