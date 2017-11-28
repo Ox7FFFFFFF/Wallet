@@ -57,6 +57,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         closeDB();
@@ -147,36 +152,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(resultCode == requestCodeClock){
-            boolean functionCode = data.getExtras().getBoolean("functionCode");
-            if(functionCode){
-                int id = data.getExtras().getInt("id",1);
-                int hour = data.getExtras().getInt("hour",12);
-                int minute = data.getExtras().getInt("minute",30);
-                String duration = data.getExtras().getString("duration","0000000");
-                Log.e("duration",duration);
-                String where = "_id = "+id;
-                ContentValues contentValues = new ContentValues();
-                contentValues.put("_id",id);
-                contentValues.put("_hour",hour);
-                contentValues.put("_minute",minute);
-                contentValues.put("_duration",duration);
-                db.update(DBHelper.CLOCK_TABLE_NAME,contentValues,where,null);
-            }
-            else{
-                int hour = data.getExtras().getInt("hour",12);
-                int minute = data.getExtras().getInt("minute",30);
-                String duration = data.getExtras().getString("duration","0000000");
-                ContentValues contentValues = new ContentValues();
-                contentValues.put("_hour",hour);
-                contentValues.put("_minute",minute);
-                contentValues.put("_duration",duration);
-                contentValues.put("_turn",1);
-                db.insert(DBHelper.CLOCK_TABLE_NAME,null,contentValues);
-            }
-
             adapter.updateSettingFragment();
             viewPager.setAdapter(adapter);
             viewPager.setCurrentItem(3);
+        }
+        else if(resultCode == requestCodeRecord){
+            adapter.updateDetailFragment();
+            viewPager.setAdapter(adapter);
+            viewPager.setCurrentItem(0);
         }
     }
 
