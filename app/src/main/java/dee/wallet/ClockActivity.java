@@ -1,7 +1,9 @@
 package dee.wallet;
 
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,6 +19,10 @@ import java.util.ArrayList;
 
 //TODO change layout
 public class ClockActivity extends AppCompatActivity {
+    //Database
+    private DBHelper dbHelper = null;
+    private SQLiteDatabase db;
+
     private TimePicker timePicker;
     private LinearLayout linearLayout;
     private TextView textWeekday;
@@ -32,6 +38,7 @@ public class ClockActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_clock);
+        openDB();
 
         Bundle bundle = getIntent().getExtras();
         functionCode = bundle.getBoolean("functionCode");
@@ -119,22 +126,43 @@ public class ClockActivity extends AppCompatActivity {
                 for(int i=0;i<durationList.size();i++){
                     duration += (durationList.get(i)==1)?'1':'0';
                 }
-                //return value
-                Intent intent = getIntent();
-                Bundle bundle = new Bundle();
+
                 if(functionCode){
-                    bundle.putInt("id",id);
+                    Log.e("duration",duration);
+                    String where = "_id = "+id;
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put("_id",id);
+                    contentValues.put("_hour",editHour);
+                    contentValues.put("_minute",editMinute);
+                    contentValues.put("_duration",duration);
+                    db.update(DBHelper.CLOCK_TABLE_NAME,contentValues,where,null);
                 }
-                bundle.putBoolean("functionCode",functionCode);
-                bundle.putInt("hour",editHour);
-                bundle.putInt("minute",editMinute);
-                bundle.putString("duration",duration);
-                intent.putExtras(bundle);
-                setResult(MainActivity.requestCodeClock,intent);
+                else{
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put("_hour",editHour);
+                    contentValues.put("_minute",editMinute);
+                    contentValues.put("_duration",duration);
+                    contentValues.put("_turn",1);
+                    db.insert(DBHelper.CLOCK_TABLE_NAME,null,contentValues);
+                }
+
+                setResult(MainActivity.requestCodeClock,getIntent());
                 ClockActivity.this.finish();
             }
         });
 
 
     }
+
+
+    private void openDB(){
+        dbHelper = new DBHelper(ClockActivity.this);
+        db = dbHelper.getWritableDatabase();
+    }
+
+    private void closeDB(){
+        dbHelper.close();
+    }
+
+    //TODO alarm management
 }

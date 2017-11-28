@@ -70,6 +70,7 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private ArrayList<Integer> duration = new ArrayList<>();
     private final Calendar c = Calendar.getInstance();
     private Activity activity;
+    private int mYear,mMonth,mDay;
 
     public enum ITEM_TYPE {
         ITEM_TYPE_DATE,
@@ -408,14 +409,21 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             final String title = recordDetail.getTitle();
             final TextViewHolder textViewHolder = (TextViewHolder) holder;
             final Calendar c = Calendar.getInstance();
-            final int mYear = c.get(Calendar.YEAR);
-            final int mMonth = c.get(Calendar.MONTH);
-            final int mDay = c.get(Calendar.DAY_OF_MONTH);
             boolean isClick = recordDetail.isClick();
+            mYear = c.get(Calendar.YEAR);
+            mMonth = c.get(Calendar.MONTH);
+            mDay = c.get(Calendar.DAY_OF_MONTH);
 
             if(isClick){
+                if(!recordDetail.getValue().equals("")){
+                    String[] date = recordDetail.getValue().split("-");
+                    mYear = Integer.valueOf(date[0]);
+                    mMonth = Integer.valueOf(date[1])-1;
+                    mDay = Integer.valueOf(date[2]);
+                }
+
                 String format = setDateFormat(mYear,mMonth,mDay);
-                ((TextViewHolder)holder).textValue.setText(setDateFormat(mYear,mMonth,mDay));
+                ((TextViewHolder)holder).textValue.setText(format);
                 mTextListener.onTextChanged(position,new RecordDetail(title,format,6),true);
 
                 ((TextViewHolder)holder).textConstraintLayout.setOnClickListener(new View.OnClickListener() {

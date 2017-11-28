@@ -289,11 +289,13 @@ public class WalletFragment extends Fragment {
      *
      * @param index 1=income 0=expense
      */
-    private String expenseCategory ="";
-    private String incomeCategory = "";
+    private String expenseCategory;
+    private String incomeCategory;
 
     private void LoadSpinner(){
         String SQL = "SELECT * FROM " + DBHelper.CATEGORY_TABLE_NAME;
+        expenseCategory = "";
+        incomeCategory = "";
         Cursor cursor = db.rawQuery(SQL, null);
         int count = cursor.getCount();
         if (count > 0) {

@@ -1,11 +1,13 @@
 package dee.wallet;
 
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -24,10 +26,15 @@ public class RecordActivity extends AppCompatActivity {
     //Database
     private DBHelper dbHelper = null;
     private SQLiteDatabase db;
+
     private int id;
+    private boolean isMenuChange = false;
     private RecyclerView inputView;
     private ArrayList<RecordDetail> inputDetails;
     private WalletAdapter inputAdapter;
+
+    private String actionDelete,actionEdit,actionFinish,actionCancel;
+    private final int idFinish = 784, idCancel = 856;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +52,12 @@ public class RecordActivity extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         id = bundle.getInt("id");
         initialData(true);
+
+        actionDelete = getString(R.string.action_delete);
+        actionCancel = getString(R.string.action_cancel);
+        actionEdit = getString(R.string.action_edit);
+        actionFinish = getString(R.string.action_finish);
+
     }
 
     /**
@@ -75,11 +88,10 @@ public class RecordActivity extends AppCompatActivity {
                 inputAdapter = new WalletAdapter(inputDetails,RecordActivity.this);
             }
             else{
-                int[] layouts = {5,5,6,8,9,7};
+                int[] layouts = {5,5,6,8,9};
                 LoadSpinner();
-                String[] titles = {"Name","Cost","Date","Type","Category","Submit"};
-                Log.e("type",String.valueOf(type));
-                String[] values = {name,String.valueOf(cost),date,String.valueOf(type),((type==0)?expenseCategory:incomeCategory),""};
+                String[] titles = {"Name","Cost","Date","Type","Category"};
+                String[] values = {name,String.valueOf(cost),date,String.valueOf(type),((type==0)?expenseCategory:incomeCategory)};
                 inputDetails = new ArrayList<>();
                 for(int i=0;i<titles.length;i++){
                     inputDetails.add(new RecordDetail(titles[i],values[i],layouts[i]));
@@ -171,7 +183,6 @@ public class RecordActivity extends AppCompatActivity {
         cursor.close();
     }
 
-    //TODO create option menu(edit) & edit function
 
     private void openDB(){
         dbHelper = new DBHelper(RecordActivity.this);
@@ -183,6 +194,17 @@ public class RecordActivity extends AppCompatActivity {
         dbHelper.close();
     }
 
+    @Override
+    public void onBackPressed() {
+        if(isMenuChange){
+            initialData(true);
+            isMenuChange = false;
+        }
+        else{
+            setResult(MainActivity.requestCodeRecord,getIntent());
+            finish();
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -192,16 +214,74 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.clear();
+        if(isMenuChange){
+            menu.add(0,idCancel,0,actionCancel).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+            menu.add(0,idFinish,0,actionFinish).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        }
+        else{
+            menu.add(0,R.id.action_edit,0,actionEdit).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+            menu.add(0,R.id.action_delete,0,actionDelete).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        }
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.action_edit:
                 initialData(false);
+                isMenuChange = true;
                 return true;
             case R.id.action_delete:
-
+                deleteData();
+                return true;
+            case idCancel:
+                initialData(true);
+                isMenuChange = false;
+                return true;
+            case idFinish:
+                updateData();
+                initialData(true);
+                isMenuChange = false;
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void updateData(){
+        String where = "_id = "+id;
+        String name = inputDetails.get(0).getValue();
+        int cost = Integer.parseInt(inputDetails.get(1).getValue());
+        String date = inputDetails.get(2).getValue();
+        int type = Integer.valueOf(inputDetails.get(3).getValue());
+        int category = queryCategory(type,inputDetails.get(4).getValue());
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("_name",name);
+        contentValues.put("_cost",cost);
+        contentValues.put("_date",date);
+        contentValues.put("_category",category);
+        db.update(DBHelper.RECORD_TABLE_NAME,contentValues,where,null);
+        Toast.makeText(RecordActivity.this,"Update",Toast.LENGTH_SHORT).show();
+    }
+
+    private void deleteData(){
+        new AlertDialog.Builder(RecordActivity.this)
+                .setTitle(R.string.alert_delete_record)
+                .setMessage(R.string.alert_delete_record_info)
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String where = "_id = "+id;
+                        db.delete(DBHelper.RECORD_TABLE_NAME,where,null);
+                        setResult(MainActivity.requestCodeRecord,getIntent());
+                        finish();
+                    }
+                })
+                .setNegativeButton(R.string.no,null)
+                .show();
     }
 }

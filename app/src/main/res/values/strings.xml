@@ -4,6 +4,8 @@
     <string name="action_addClock">Add Clock</string>
     <string name="action_edit">Edit</string>
     <string name="action_delete">Delete</string>
+    <string name="action_finish">Finish</string>
+    <string name="action_cancel">Cancel</string>
 
     <string name="menu_1">All</string>
     <string name="menu_2">Detail</string>
@@ -39,4 +41,10 @@
 
     <string name="activity_clock_weekday">Weekday</string>
     <string name="title_activity_record">RecordActivity</string>
+
+    <string name="alert_delete_record">Delete Record</string>
+    <string name="alert_delete_record_info">Are you sure you want to delete record?</string>
+
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>

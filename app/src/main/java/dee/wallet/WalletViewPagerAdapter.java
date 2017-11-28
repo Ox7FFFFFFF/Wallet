@@ -52,8 +52,12 @@ public class WalletViewPagerAdapter extends FragmentPagerAdapter {
     }
 
     public void updateSettingFragment(){
-        fragments.remove(3);
-        fragments.add(WalletFragment.newInstance(3,year,month));
+        fragments.set(3,WalletFragment.newInstance(3,year,month));
+        notifyDataSetChanged();
+    }
+
+    public void updateDetailFragment(){
+        fragments.set(0,WalletFragment.newInstance(0,year,month));
         notifyDataSetChanged();
     }
 }
