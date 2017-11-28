@@ -11,6 +11,10 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -18,8 +22,9 @@ import java.util.ArrayList;
 
 public class RecordActivity extends AppCompatActivity {
     //Database
-    DBHelper dbHelper = null;
-    SQLiteDatabase db;
+    private DBHelper dbHelper = null;
+    private SQLiteDatabase db;
+    private int id;
     private RecyclerView inputView;
     private ArrayList<RecordDetail> inputDetails;
     private WalletAdapter inputAdapter;
@@ -38,63 +43,92 @@ public class RecordActivity extends AppCompatActivity {
 
         //Initial data value
         Bundle bundle = getIntent().getExtras();
-        final int id = bundle.getInt("id");
-        final String name = bundle.getString("name");
-        final int cost = bundle.getInt("cost");
-        final String date = bundle.getString("date");
-        final int type = bundle.getInt("type");
-        final String category = bundle.getString("category");
-        final String[] titles = {"Name","Cost","Date","Type","Category"};
-        final int[] layouts = {6,6,6,6,6};
-        final String[] values = {name,String.valueOf(cost),date,((type==0)?"Expense":"Income"),category};
-        inputDetails = new ArrayList<>();
-        for(int i=0;i<titles.length;i++){
-            inputDetails.add(new RecordDetail(titles[i],values[i],layouts[i],false));
+        id = bundle.getInt("id");
+        initialData(true);
+    }
+
+    /**
+     *
+     * @param index 0=show 1=edit
+     */
+
+    private void initialData(boolean index){
+        String SQL = "SELECT * FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.RECORD_TABLE_NAME+"._category="+DBHelper.CATEGORY_TABLE_NAME+"._id AND "+DBHelper.RECORD_TABLE_NAME+"._id="+id+" ORDER BY DATETIME("+DBHelper.RECORD_TABLE_NAME+"._date) DESC,"+DBHelper.RECORD_TABLE_NAME+"._id DESC";
+        Cursor cursor = db.rawQuery(SQL,null);
+        int count = cursor.getCount();
+        if(count>0) {
+            cursor.moveToFirst();
+            String name = cursor.getString(1);
+            int cost = cursor.getInt(2);
+            String date = cursor.getString(3);
+            String category = cursor.getString(7);
+            int type = cursor.getInt(6);
+
+            if(index){
+                String[] titles = {"Name","Cost","Date","Type","Category"};
+                int[] layouts = {6,6,6,6,6};
+                final String[] values = {name,String.valueOf(cost),date,((type==0)?"Expense":"Income"),category};
+                inputDetails = new ArrayList<>();
+                for(int i=0;i<titles.length;i++){
+                    inputDetails.add(new RecordDetail(titles[i],values[i],layouts[i],false));
+                }
+                inputAdapter = new WalletAdapter(inputDetails,RecordActivity.this);
+            }
+            else{
+                int[] layouts = {5,5,6,8,9,7};
+                LoadSpinner();
+                String[] titles = {"Name","Cost","Date","Type","Category","Submit"};
+                Log.e("type",String.valueOf(type));
+                String[] values = {name,String.valueOf(cost),date,String.valueOf(type),((type==0)?expenseCategory:incomeCategory),""};
+                inputDetails = new ArrayList<>();
+                for(int i=0;i<titles.length;i++){
+                    inputDetails.add(new RecordDetail(titles[i],values[i],layouts[i]));
+                }
+                inputAdapter = new WalletAdapter(inputDetails,this);
+                inputAdapter.setOnTextChangeListener(new onTextChangeListener() {
+                    @Override
+                    public void onTextChanged(int pos,RecordDetail input,boolean isUpdate) {
+                        inputDetails.set(pos,input);
+                        if(input.getLayout()==8){
+                            //update spinner
+                            int type = Integer.valueOf(input.getValue());
+                            if(type==0){
+                                inputAdapter.updateItem(4,expenseCategory);
+                            }
+                            else{
+                                inputAdapter.updateItem(4,incomeCategory);
+                            }
+                        }
+                    }
+                });
+                inputAdapter.setOnButtonClickListener(new onButtonClickListener() {
+                    @Override
+                    public void onButtonClick() {
+                        String name = inputDetails.get(0).getValue();
+                        int cost = Integer.parseInt(inputDetails.get(1).getValue());
+                        String date = inputDetails.get(2).getValue();
+                        int type = Integer.valueOf(inputDetails.get(3).getValue());
+                        String type_name = inputDetails.get(4).getValue();
+                        int category = queryCategory(type,type_name);
+                        ContentValues contentValues = new ContentValues();
+                        contentValues.put("_name",name);
+                        contentValues.put("_cost",cost);
+                        contentValues.put("_date",date);
+                        contentValues.put("_category",category);
+                        db.insert(DBHelper.RECORD_TABLE_NAME,null,contentValues);
+                        Toast.makeText(RecordActivity.this,"Submit",Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            inputView.setAdapter(inputAdapter);
+            inputView.addItemDecoration(new DividerItemDecoration(RecordActivity.this,DividerItemDecoration.VERTICAL));
+
         }
-        inputAdapter = new WalletAdapter(inputDetails,RecordActivity.this);
-//        inputAdapter.setOnTextChangeListener(new onTextChangeListener() {
-//            @Override
-//            public void onTextChanged(int pos,RecordDetail input,boolean isUpdate) {
-//                inputDetails.set(pos,input);
-//                if(input.getLayout()==8){
-//                    //update spinner
-//                    int type = Integer.valueOf(input.getValue());
-//                    if(type==0){
-//                        inputAdapter.updateItem(4,expenseCategory);
-//                    }
-//                    else{
-//                        inputAdapter.updateItem(4,incomeCategory);
-//                    }
-////                    inputAdapter.notifyItemChanged(4);
-//                }
-//            }
-//        });
-//        inputAdapter.setOnButtonClickListener(new onButtonClickListener() {
-//            @Override
-//            public void onButtonClick() {
-////                for(int i=0;i<inputDetails.size();i++){
-////                    Log.e("value",inputDetails.get(i).getValue());
-////                }
-//                String name = inputDetails.get(0).getValue();
-//                int cost = Integer.parseInt(inputDetails.get(1).getValue());
-//                String date = inputDetails.get(2).getValue();
-//                int type = Integer.valueOf(inputDetails.get(3).getValue());
-//                String type_name = inputDetails.get(4).getValue();
-//                int category = queryCategory(type,type_name);
-//                ContentValues contentValues = new ContentValues();
-//                contentValues.put("_name",name);
-//                contentValues.put("_cost",cost);
-//                contentValues.put("_date",date);
-//                contentValues.put("_category",category);
-//                db.insert(DBHelper.RECORD_TABLE_NAME,null,contentValues);
-//                Toast.makeText(RecordActivity.this,"Submit",Toast.LENGTH_SHORT).show();
-//
-//            }
-//        });
-        inputView.setAdapter(inputAdapter);
-        inputView.addItemDecoration(new DividerItemDecoration(RecordActivity.this,DividerItemDecoration.VERTICAL));
+        cursor.close();
 
     }
+
 
     private int queryCategory(int type,String name){
         String SQL = "SELECT * FROM "+DBHelper.CATEGORY_TABLE_NAME+" WHERE _type="+type+" AND _name='"+name+"'";
@@ -147,5 +181,27 @@ public class RecordActivity extends AppCompatActivity {
 
     private void closeDB(){
         dbHelper.close();
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_record,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.action_edit:
+                initialData(false);
+                return true;
+            case R.id.action_delete:
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }

@@ -449,7 +449,12 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         else if(holder instanceof RadioViewHolder){
             final String title = recordDetail.getTitle();
             ((RadioViewHolder)holder).textTitle.setText(recordDetail.getTitle());
-            ((RadioViewHolder)holder).radioButtonExpense.setChecked(true);
+            if(recordDetail.getValue().equals("0")){
+                ((RadioViewHolder)holder).radioButtonExpense.setChecked(true);
+            }
+            else{
+                ((RadioViewHolder)holder).radioButtonIncome.setChecked(true);
+            }
             ((RadioViewHolder)holder).radioGroupType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(RadioGroup group, int checkedId) {
