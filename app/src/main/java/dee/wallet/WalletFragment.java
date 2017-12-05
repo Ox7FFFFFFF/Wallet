@@ -165,7 +165,7 @@ public class WalletFragment extends Fragment {
         recordData.add(new RecordDetail(expense,income,3));
         cursorHead.close();
         //Record
-        String SQL = "SELECT * FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.RECORD_TABLE_NAME+"._category="+DBHelper.CATEGORY_TABLE_NAME+"._id ORDER BY DATETIME("+DBHelper.RECORD_TABLE_NAME+"._date) DESC,"+DBHelper.RECORD_TABLE_NAME+"._id DESC";
+        String SQL = "SELECT * FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.RECORD_TABLE_NAME+"._category="+DBHelper.CATEGORY_TABLE_NAME+"._id ORDER BY DATETIME("+DBHelper.RECORD_TABLE_NAME+"._date) ASC,"+DBHelper.RECORD_TABLE_NAME+"._id DESC";
         Cursor cursor = db.rawQuery(SQL,null);
         int count = cursor.getCount();
         String newDate="";
@@ -217,7 +217,10 @@ public class WalletFragment extends Fragment {
         RecyclerView.LayoutManager layoutManager;
         layoutManager = new LinearLayoutManager(getActivity());
         inputView.setLayoutManager(layoutManager);
+        LoadWalletInputData();
+    }
 
+    private void LoadWalletInputData(){
         //Initial data value
         final String[] titles = {"Name","Cost","Date","Type","Category","Submit"};
         final int[] layouts = {5,5,6,8,9,7};
@@ -248,30 +251,28 @@ public class WalletFragment extends Fragment {
         inputAdapter.setOnButtonClickListener(new onButtonClickListener() {
             @Override
             public void onButtonClick() {
-//                for(int i=0;i<inputDetails.size();i++){
-//                    Log.e("value",inputDetails.get(i).getValue());
-//                }
-                String name = inputDetails.get(0).getValue();
-                int cost = Integer.parseInt(inputDetails.get(1).getValue());
-                String date = inputDetails.get(2).getValue();
-                int type = Integer.valueOf(inputDetails.get(3).getValue());
-                String type_name = inputDetails.get(4).getValue();
-                int category = queryCategory(type,type_name);
-                ContentValues contentValues = new ContentValues();
-                contentValues.put("_name",name);
-                contentValues.put("_cost",cost);
-                contentValues.put("_date",date);
-                contentValues.put("_category",category);
-                db.insert(DBHelper.RECORD_TABLE_NAME,null,contentValues);
-                Toast.makeText(getContext(),"Submit",Toast.LENGTH_SHORT).show();
-                LoadWalletDetailData();
-                LoadWalletHistoryData(0);
+                if(!inputDetails.get(0).getValue().equals("") && !inputDetails.get(1).getValue().equals("")){
+                    String name = inputDetails.get(0).getValue();
+                    int cost = Integer.parseInt(inputDetails.get(1).getValue());
+                    String date = inputDetails.get(2).getValue();
+                    int type = Integer.valueOf(inputDetails.get(3).getValue());
+                    String type_name = inputDetails.get(4).getValue();
+                    int category = queryCategory(type,type_name);
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put("_name",name);
+                    contentValues.put("_cost",cost);
+                    contentValues.put("_date",date);
+                    contentValues.put("_category",category);
+                    db.insert(DBHelper.RECORD_TABLE_NAME,null,contentValues);
+                    Toast.makeText(getContext(),"Submit",Toast.LENGTH_SHORT).show();
+                    LoadWalletDetailData();
+                    LoadWalletHistoryData(0);
+                }
             }
         });
         inputView.setAdapter(inputAdapter);
         inputView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
     }
-
 
     private int queryCategory(int type,String name){
         String SQL = "SELECT * FROM "+DBHelper.CATEGORY_TABLE_NAME+" WHERE _type="+type+" AND _name='"+name+"'";

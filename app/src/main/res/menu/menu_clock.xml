@@ -2,15 +2,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="dee.wallet.RecordActivity">
+    tools:context="dee.wallet.ClockActivity">
     <item
-        android:id="@+id/action_edit"
+        android:id="@+id/action_cancel"
         android:orderInCategory="100"
-        android:title="@string/action_edit"
+        android:title="@string/action_cancel"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/action_delete"
+        android:id="@+id/action_save"
         android:orderInCategory="100"
-        android:title="@string/action_delete"
+        android:title="@string/action_save"
         app:showAsAction="ifRoom" />
 </menu>

@@ -233,6 +233,7 @@ public class RecordActivity extends AppCompatActivity {
             case R.id.action_edit:
                 initialData(false);
                 isMenuChange = true;
+                invalidateOptionsMenu();
                 return true;
             case R.id.action_delete:
                 deleteData();
@@ -240,6 +241,7 @@ public class RecordActivity extends AppCompatActivity {
             case idCancel:
                 initialData(true);
                 isMenuChange = false;
+                invalidateOptionsMenu();
                 return true;
             case idFinish:
                 updateData();
