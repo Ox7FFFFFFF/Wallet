@@ -23,7 +23,7 @@ public class RecordDetail {
     private ArrayList<Integer> duration = new ArrayList<>();
     private ArrayList<RecordDetail> recordDetails = new ArrayList<>();
 
-    public RecordDetail(int id, String name, int cost, String date, String category, int type,int layout) {
+    public RecordDetail(int id, String name, int cost, String date, String category, int type,int layout,boolean isClick) {
         this.id = id;
         this.name = name;
         this.cost = cost;
@@ -31,6 +31,7 @@ public class RecordDetail {
         this.category = category;
         this.type = type;
         this.layout = layout;
+        this.isClick = isClick;
     }
 
     public RecordDetail(ArrayList<RecordDetail> recordDetails,int layout) {
@@ -51,12 +52,13 @@ public class RecordDetail {
         this.layout = layout;
     }
 
-    public RecordDetail(int id, String name, int cost ,int type ,int layout) {
+    public RecordDetail(int id, String name, int cost ,int type ,int layout,boolean isClick) {
         this.id = id;
         this.name = name;
         this.cost = cost;
         this.type = type;
         this.layout = layout;
+        this.isClick = isClick;
     }
 
     public RecordDetail(String title, String value ,int layout) {

@@ -33,7 +33,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
             Notification notification = new Notification.Builder(context)
                     .setContentIntent(appIntent)
-                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setSmallIcon(R.drawable.icon_wallet)
                     .setTicker("notification on status bar.") // 設置狀態列的顯示的資訊
                     .setWhen(System.currentTimeMillis())// 設置時間發生時間
                     .setAutoCancel(true) // 設置通知被使用者點擊後是否清除  //notification.flags = Notification.FLAG_AUTO_CANCEL;

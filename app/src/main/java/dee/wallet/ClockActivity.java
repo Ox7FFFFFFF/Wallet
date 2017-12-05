@@ -259,5 +259,4 @@ public class ClockActivity extends AppCompatActivity {
                 .setNegativeButton(R.string.no,null)
                 .show();
     }
-    //TODO alarm management
 }

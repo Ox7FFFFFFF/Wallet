@@ -2,18 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:title="@string/menu_2"
-        android:icon="@android:drawable/ic_dialog_email" />
+        android:icon="@drawable/menu_list" />
 
     <item
-        android:icon="@android:drawable/ic_dialog_map"
+        android:icon="@drawable/menu_record"
         android:title="@string/menu_3" />
 
     <item
-        android:icon="@android:drawable/ic_lock_idle_alarm"
+        android:icon="@drawable/menu_chart"
         android:title="@string/menu_4" />
 
     <item
-        android:icon="@android:drawable/ic_media_ff"
+        android:icon="@drawable/menu_alarm"
         android:title="@string/menu_5" />
 
 </menu>

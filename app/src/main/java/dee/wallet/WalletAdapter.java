@@ -290,6 +290,43 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         else if(holder instanceof RecordViewHolder){
             ((RecordViewHolder)holder).textName.setText(recordDetail.getName());
             int type = recordDetail.getType();
+            boolean isClick = recordDetail.isClick();
+            if(isClick){
+                String category = recordDetail.getCategory();
+//TODO imageview
+                if(category.equals("Activity")){
+                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_activity));
+                }
+                else if(category.equals("School")){
+                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_school));
+                }
+                else if(category.equals("Breakfast")){
+                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_breakfase));
+                }
+                else if(category.equals("Lunch")){
+                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_lunch));
+                }
+                else if(category.equals("Dinner")){
+                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_dinner));
+                }
+                else if(category.equals("Drink")){
+                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_drink));
+                }
+                else if(category.equals("Salary")){
+                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.income_salary));
+                }
+                else if(category.equals("Home")){
+                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.incomt_home));
+                }
+
+                ((RecordViewHolder)holder).constraintLayout.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mButtonClickResultListener.onButtonClickResult(recordDetail);
+                    }
+                });
+            }
+
             if(type==0){
                 ((RecordViewHolder)holder).textDollar.setTextColor(Color.parseColor("#F8838B"));
                 ((RecordViewHolder)holder).textDollar.setText(String.valueOf(-recordDetail.getCost()));
@@ -298,12 +335,6 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 ((RecordViewHolder)holder).textDollar.setTextColor(Color.parseColor("#4CAF9B"));
                 ((RecordViewHolder)holder).textDollar.setText(String.valueOf(recordDetail.getCost()));
             }
-            ((RecordViewHolder)holder).constraintLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mButtonClickResultListener.onButtonClickResult(recordDetail);
-                }
-            });
         }
         else if(holder instanceof PieChartViewHolder){
             String centerText = "";
@@ -571,8 +602,8 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     private String setDateFormat(int year,int monthOfYear,int dayOfMonth){
         return String.valueOf(year) + "-"
-                + String.valueOf(monthOfYear + 1) + "-"
-                + String.valueOf(dayOfMonth);
+                + new DecimalFormat("00").format(monthOfYear + 1)+ "-"
+                + new DecimalFormat("00").format(dayOfMonth);
     }
 
     private String setDateRegularFormat(String date){

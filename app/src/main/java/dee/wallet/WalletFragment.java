@@ -1,7 +1,11 @@
 package dee.wallet;
 
+import android.app.AlarmManager;
 import android.app.DatePickerDialog;
+import android.app.PendingIntent;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -9,6 +13,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -165,7 +170,7 @@ public class WalletFragment extends Fragment {
         recordData.add(new RecordDetail(expense,income,3));
         cursorHead.close();
         //Record
-        String SQL = "SELECT * FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.RECORD_TABLE_NAME+"._category="+DBHelper.CATEGORY_TABLE_NAME+"._id ORDER BY DATETIME("+DBHelper.RECORD_TABLE_NAME+"._date) ASC,"+DBHelper.RECORD_TABLE_NAME+"._id DESC";
+        String SQL = "SELECT * FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.RECORD_TABLE_NAME+"._category="+DBHelper.CATEGORY_TABLE_NAME+"._id ORDER BY "+DBHelper.RECORD_TABLE_NAME+"._date DESC,"+DBHelper.RECORD_TABLE_NAME+"._id DESC";
         Cursor cursor = db.rawQuery(SQL,null);
         int count = cursor.getCount();
         String newDate="";
@@ -196,7 +201,7 @@ public class WalletFragment extends Fragment {
                     tmp.add(dateDetail);
                 }
 
-                RecordDetail recordDetail = new RecordDetail(id,name,cost,date,category,type,1);
+                RecordDetail recordDetail = new RecordDetail(id,name,cost,date,category,type,1,true);
                 tmp.add(recordDetail);
             }
             RecordDetail mergeData = new RecordDetail(tmp,4);
@@ -348,7 +353,7 @@ public class WalletFragment extends Fragment {
 
         Cursor cursor = db.rawQuery(SQL,null);
         ArrayList <RecordDetail> historyData = new ArrayList<>();
-        historyData.add(new RecordDetail(0,"pie",0,index,2));
+        historyData.add(new RecordDetail(0,"pie",0,index,2,false));
         int count = cursor.getCount();
         if(count>0){
             cursor.moveToFirst();
@@ -358,7 +363,7 @@ public class WalletFragment extends Fragment {
                 int cost = cursor.getInt(1);
                 String name = cursor.getString(2);
                 int type = cursor.getInt(3);
-                RecordDetail recordDetail = new RecordDetail(id,name,cost,type,1);
+                RecordDetail recordDetail = new RecordDetail(id,name,cost,type,1,false);
                 historyData.add(recordDetail);
             }
         }
@@ -418,11 +423,26 @@ public class WalletFragment extends Fragment {
             public void onTextChanged(int pos, RecordDetail input,boolean isUpdate) {
                 clockData.set(pos,input);
                 int id = input.getId();
+                int hour = input.getHour();
+                int minute = input.getMinute();
                 int turn = input.getTurn();
+                ArrayList<Integer> durationList = new ArrayList<>();
+                durationList.addAll(input.getDuration());
+                String duration = "";
+                for(int i=0;i<durationList.size();i++){
+                    duration += (durationList.get(i)==1)?'1':'0';
+                }
+
                 String where = "_id = "+id;
                 ContentValues contentValues = new ContentValues();
                 contentValues.put("_turn",turn);
                 db.update(DBHelper.CLOCK_TABLE_NAME,contentValues,where,null);
+                if(turn == 1){
+                    setAlarm(id,duration,hour,minute);
+                }
+                else{
+                    cancelAlarm(id);
+                }
             }
         });
         clockAdapter.setOnButtonClickResultListener(new onButtonClickResultListener() {
@@ -441,6 +461,32 @@ public class WalletFragment extends Fragment {
         });
         clockView.setAdapter(clockAdapter);
 
+    }
+
+    private void setAlarm(int id,String duration,int editHour,int editMinute){
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY,editHour);
+        cal.set(Calendar.MINUTE, editMinute);
+        cal.set(Calendar.SECOND,1);
+
+        Intent intent = new Intent(getContext(), AlarmReceiver.class);
+        intent.putExtra("msg", "alarm");
+        intent.putExtra("duration",duration);
+
+        PendingIntent pi = PendingIntent.getBroadcast(getContext(),id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        AlarmManager am = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+        am.setInexactRepeating(AlarmManager.RTC_WAKEUP,cal.getTimeInMillis(),AlarmManager.INTERVAL_DAY,pi);
+    }
+
+    private void cancelAlarm(int id){
+        Log.e("cancel","cancel");
+        Intent intent = new Intent(getContext(), AlarmReceiver.class);
+        PendingIntent pi = PendingIntent.getBroadcast(getContext(),id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager am = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+        am.cancel(pi);
+        pi = null;
+        am = null;
     }
 
     private void openDB(){
