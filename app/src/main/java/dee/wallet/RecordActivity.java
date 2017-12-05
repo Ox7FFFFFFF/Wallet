@@ -215,7 +215,7 @@ public class RecordActivity extends AppCompatActivity {
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        menu.clear();
+        menu.clear();//TODO fix bug
         if(isMenuChange){
             menu.add(0,idCancel,0,actionCancel).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
             menu.add(0,idFinish,0,actionFinish).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
