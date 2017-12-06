@@ -3,6 +3,7 @@ package dee.wallet;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.util.Log;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
@@ -53,6 +54,11 @@ public class WalletViewPagerAdapter extends FragmentPagerAdapter {
 
     public void updateSettingFragment(){
         fragments.set(3,WalletFragment.newInstance(3,year,month));
+        notifyDataSetChanged();
+    }
+
+    public void updateHistoryFragment(){
+        fragments.set(2,WalletFragment.newInstance(2,year,month));
         notifyDataSetChanged();
     }
 

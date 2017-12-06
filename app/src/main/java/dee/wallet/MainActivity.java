@@ -32,8 +32,9 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     //Database
-    DBHelper dbHelper = null;
-    SQLiteDatabase db;
+    private DBHelper dbHelper = null;
+    private SQLiteDatabase db;
+    private int currentPosition;
 
     public static int requestCodeClock = 1;
     public static int requestCodeRecord = 2;
@@ -52,8 +53,8 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         openDB();
-        initDate();
         initUI();
+        initDate();
     }
 
     @Override
@@ -94,6 +95,11 @@ public class MainActivity extends AppCompatActivity {
                                 selectMonth = month;
                                 String monthString = new DateFormatSymbols(new Locale("en", "US")).getMonths()[month-1];
                                 textDate.setText(String.valueOf(mYear+" "+monthString));
+                                adapter = new WalletViewPagerAdapter(getSupportFragmentManager(),selectYear,selectMonth);
+                                adapter.updateHistoryFragment();
+                                adapter.updateDetailFragment();
+                                viewPager.setAdapter(adapter);
+                                viewPager.setCurrentItem(currentPosition);
                             }
                         })
                         .setNegativeButton(new OnCancelMonthDialogListener() {
@@ -131,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 viewPager.setCurrentItem(position,false);
-
+                currentPosition = position;
                 if(currentFragment==null){
                     return true;
                 }
@@ -146,7 +152,6 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setOffscreenPageLimit(3);
         adapter = new WalletViewPagerAdapter(getSupportFragmentManager(),selectYear,selectMonth);
         viewPager.setAdapter(adapter);
-
     }
 
     @Override

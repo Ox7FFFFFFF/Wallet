@@ -37,8 +37,8 @@ public class AlarmReceiver extends BroadcastReceiver {
                     .setTicker("notification on status bar.") // 設置狀態列的顯示的資訊
                     .setWhen(System.currentTimeMillis())// 設置時間發生時間
                     .setAutoCancel(true) // 設置通知被使用者點擊後是否清除  //notification.flags = Notification.FLAG_AUTO_CANCEL;
-                    .setContentTitle("Notification Title") // 設置下拉清單裡的標題
-                    .setContentText("Notification Content")// 設置上下文內容
+                    .setContentTitle("Wallet") // 設置下拉清單裡的標題
+                    .setContentText("Accounting Reminder")
                     .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS) //使用默認手機震動提示
                     .setVibrate(vibrate_effect) //自訂震動長度
                     .setLights(0xff00ff00, 300, 1000) //自訂燈光閃爍 (ledARGB, vibrateledOnMS, ledOffMS)

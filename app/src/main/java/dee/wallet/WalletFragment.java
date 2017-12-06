@@ -47,7 +47,7 @@ import java.util.Calendar;
 public class WalletFragment extends Fragment {
     private FrameLayout fragmentContainer;
 
-    private int selectYear,selectMonth;
+    public static int selectYear,selectMonth;
 
     //Database
     DBHelper dbHelper = null;
@@ -76,8 +76,8 @@ public class WalletFragment extends Fragment {
         WalletFragment fragment = new WalletFragment();
         Bundle b = new Bundle();
         b.putInt("index",index);
-        b.putInt("year",year);
-        b.putInt("month",month);
+        selectYear = year;
+        selectMonth = month;
         fragment.setArguments(b);
         return fragment;
     }
@@ -86,8 +86,14 @@ public class WalletFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         int index = getArguments().getInt("index",0);
-        selectYear = getArguments().getInt("year",2017);
-        selectMonth = getArguments().getInt("month",1);
+        Calendar cal = Calendar.getInstance();
+        Log.e("time",selectMonth+" "+selectYear);
+        if(selectYear == 0){
+            selectYear = cal.get(Calendar.YEAR);
+        }
+        if(selectMonth == 0){
+            selectMonth = cal.get(Calendar.MONTH)+1;
+        }
         openDB();
         if(index == 0){
             View view = inflater.inflate(R.layout.fragment_list,container,false);
@@ -151,7 +157,7 @@ public class WalletFragment extends Fragment {
         ArrayList <RecordDetail> recordData = new ArrayList<>();
 
         //Head
-        String SQLHEAD = "SELECT "+DBHelper.CATEGORY_TABLE_NAME+"._type , SUM("+DBHelper.RECORD_TABLE_NAME+"._cost) FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.CATEGORY_TABLE_NAME+"._id = "+DBHelper.RECORD_TABLE_NAME+"._category GROUP BY "+DBHelper.CATEGORY_TABLE_NAME+"._type";
+        String SQLHEAD = "SELECT "+DBHelper.CATEGORY_TABLE_NAME+"._type , SUM("+DBHelper.RECORD_TABLE_NAME+"._cost) FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.CATEGORY_TABLE_NAME+"._id = "+DBHelper.RECORD_TABLE_NAME+"._category AND strftime('%Y',"+DBHelper.RECORD_TABLE_NAME+"._date)='"+selectYear+"' AND strftime('%m',"+DBHelper.RECORD_TABLE_NAME+"._date) = '"+selectMonth+"' GROUP BY "+DBHelper.CATEGORY_TABLE_NAME+"._type";
         Cursor cursorHead = db.rawQuery(SQLHEAD,null);
         int countHead = cursorHead.getCount();
         cursorHead.moveToFirst();
@@ -170,7 +176,7 @@ public class WalletFragment extends Fragment {
         recordData.add(new RecordDetail(expense,income,3));
         cursorHead.close();
         //Record
-        String SQL = "SELECT * FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.RECORD_TABLE_NAME+"._category="+DBHelper.CATEGORY_TABLE_NAME+"._id ORDER BY "+DBHelper.RECORD_TABLE_NAME+"._date DESC,"+DBHelper.RECORD_TABLE_NAME+"._id DESC";
+        String SQL = "SELECT * FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.RECORD_TABLE_NAME+"._category="+DBHelper.CATEGORY_TABLE_NAME+"._id AND strftime('%Y',"+DBHelper.RECORD_TABLE_NAME+"._date)='"+selectYear+"' AND strftime('%m',"+DBHelper.RECORD_TABLE_NAME+"._date) = '"+selectMonth+"' ORDER BY "+DBHelper.RECORD_TABLE_NAME+"._date DESC,"+DBHelper.RECORD_TABLE_NAME+"._id DESC";
         Cursor cursor = db.rawQuery(SQL,null);
         int count = cursor.getCount();
         String newDate="";
@@ -349,7 +355,7 @@ public class WalletFragment extends Fragment {
     }
 
     private void LoadWalletHistoryData(int index){
-        String SQL = "SELECT "+DBHelper.RECORD_TABLE_NAME+"._id , SUM("+DBHelper.RECORD_TABLE_NAME+"._cost),"+DBHelper.CATEGORY_TABLE_NAME+"._name,"+DBHelper.CATEGORY_TABLE_NAME+"._type FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.CATEGORY_TABLE_NAME+"._type="+index+" AND "+DBHelper.CATEGORY_TABLE_NAME+"._id="+DBHelper.RECORD_TABLE_NAME+"._category GROUP BY "+DBHelper.RECORD_TABLE_NAME+"._category";
+        String SQL = "SELECT "+DBHelper.RECORD_TABLE_NAME+"._id , SUM("+DBHelper.RECORD_TABLE_NAME+"._cost),"+DBHelper.CATEGORY_TABLE_NAME+"._name,"+DBHelper.CATEGORY_TABLE_NAME+"._type FROM "+DBHelper.RECORD_TABLE_NAME+","+DBHelper.CATEGORY_TABLE_NAME+" WHERE "+DBHelper.CATEGORY_TABLE_NAME+"._type="+index+" AND "+DBHelper.CATEGORY_TABLE_NAME+"._id="+DBHelper.RECORD_TABLE_NAME+"._category  AND strftime('%Y',"+DBHelper.RECORD_TABLE_NAME+"._date)='"+selectYear+"' AND strftime('%m',"+DBHelper.RECORD_TABLE_NAME+"._date) = '"+selectMonth+"' GROUP BY "+DBHelper.RECORD_TABLE_NAME+"._category";
 
         Cursor cursor = db.rawQuery(SQL,null);
         ArrayList <RecordDetail> historyData = new ArrayList<>();
@@ -518,5 +524,10 @@ public class WalletFragment extends Fragment {
             Animation fadeOut = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_out);
             fragmentContainer.startAnimation(fadeOut);
         }
+    }
+
+    public void reloadData(){
+        LoadWalletSettingData();
+        LoadWalletDetailData();
     }
 }

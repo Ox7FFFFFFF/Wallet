@@ -291,40 +291,43 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             ((RecordViewHolder)holder).textName.setText(recordDetail.getName());
             int type = recordDetail.getType();
             boolean isClick = recordDetail.isClick();
+            String category = "";
             if(isClick){
-                String category = recordDetail.getCategory();
-//TODO imageview
-                if(category.equals("Activity")){
-                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_activity));
-                }
-                else if(category.equals("School")){
-                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_school));
-                }
-                else if(category.equals("Breakfast")){
-                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_breakfase));
-                }
-                else if(category.equals("Lunch")){
-                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_lunch));
-                }
-                else if(category.equals("Dinner")){
-                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_dinner));
-                }
-                else if(category.equals("Drink")){
-                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_drink));
-                }
-                else if(category.equals("Salary")){
-                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.income_salary));
-                }
-                else if(category.equals("Home")){
-                    ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.incomt_home));
-                }
-
                 ((RecordViewHolder)holder).constraintLayout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         mButtonClickResultListener.onButtonClickResult(recordDetail);
                     }
                 });
+                category = recordDetail.getCategory();
+            }
+            else{
+                category = recordDetail.getName();
+            }
+
+            if(category.equals("Activity")){
+                ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_activity));
+            }
+            else if(category.equals("School")){
+                ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_school));
+            }
+            else if(category.equals("Breakfast")){
+                ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_breakfase));
+            }
+            else if(category.equals("Lunch")){
+                ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_lunch));
+            }
+            else if(category.equals("Dinner")){
+                ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_dinner));
+            }
+            else if(category.equals("Drink")){
+                ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.expense_drink));
+            }
+            else if(category.equals("Salary")){
+                ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.income_salary));
+            }
+            else if(category.equals("Home")){
+                ((RecordViewHolder)holder).imageView.setImageDrawable(context.getDrawable(R.drawable.incomt_home));
             }
 
             if(type==0){
@@ -639,11 +642,19 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
     }
 
-    public static final int[] PIE_COLORS = {
-            Color.rgb(181, 194, 202), Color.rgb(129, 216, 200), Color.rgb(241, 214, 145),
-            Color.rgb(108, 176, 223), Color.rgb(195, 221, 155), Color.rgb(251, 215, 191),
-            Color.rgb(237, 189, 189), Color.rgb(172, 217, 243)
+//    private static final int[] PIE_COLORS = {
+//            Color.rgb(129, 216, 200), Color.rgb(241, 214, 145),
+//            Color.rgb(108, 176, 223), Color.rgb(195, 221, 155),
+//            Color.rgb(251, 215, 191), Color.rgb(237, 189, 189),
+//            Color.rgb(172, 217, 243)
+//    };
+
+    private static final int[] PIE_COLORS = {
+            Color.rgb(227, 178, 178), Color.rgb(238, 216, 150),
+            Color.rgb(151, 225, 179), Color.rgb(142, 192, 216),
+            Color.rgb(207, 186, 234)
     };
+
     private void setPieChartData(PieChart pieChart, Map<String,Integer> pieValues){
         ArrayList<PieEntry> entries = new ArrayList<>();
         Set set = pieValues.entrySet();

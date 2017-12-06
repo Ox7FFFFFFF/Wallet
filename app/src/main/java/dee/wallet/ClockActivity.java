@@ -259,4 +259,10 @@ public class ClockActivity extends AppCompatActivity {
                 .setNegativeButton(R.string.no,null)
                 .show();
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        closeDB();
+    }
 }
