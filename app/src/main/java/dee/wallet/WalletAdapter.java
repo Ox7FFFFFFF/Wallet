@@ -723,7 +723,7 @@ public class WalletAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         else if(layout==9){
             return ITEM_TYPE.ITEM_TYPE_SPINNER.ordinal();
         }
-        else{
+        else {
             return ITEM_TYPE.ITEM_TYPE_CLOCK.ordinal();
         }
 

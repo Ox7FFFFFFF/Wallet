@@ -1,23 +1,18 @@
 package dee.wallet;
 
 import android.app.AlarmManager;
-import android.app.DatePickerDialog;
 import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,16 +22,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.DatePicker;
-import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.Spinner;
-import android.widget.TextView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 /**
@@ -64,8 +54,10 @@ public class WalletFragment extends Fragment {
     //FragmentHistoryUI
     private static RecyclerView historyView;
     private RecyclerView.LayoutManager historyLayoutManager;
+    private LinearLayout tabLayout;
     private Button btnExpense;
     private Button btnIncome;
+    private int offset;
 
     //FragmentSettingUI
     private static RecyclerView clockView;
@@ -330,6 +322,7 @@ public class WalletFragment extends Fragment {
 
     private void initWalletHistory(View view){
         historyView = (RecyclerView) view.findViewById(R.id.fragment_history_list);
+        tabLayout = (LinearLayout) view.findViewById(R.id.tab_layout);
         btnExpense = (Button) view.findViewById(R.id.btn_expense);
         btnIncome = (Button) view.findViewById(R.id.btn_income);
 
@@ -351,6 +344,20 @@ public class WalletFragment extends Fragment {
         historyLayoutManager = new LinearLayoutManager(getActivity());
         historyView.setLayoutManager(historyLayoutManager);
         historyView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
+        historyView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                offset += dy;
+//                Log.e("offset",String.valueOf(offset));
+                if(offset>70) {
+                    tabLayout.animate().translationY(-125).start();
+                }
+                else if(offset<200) {
+                    tabLayout.animate().translationY(0).start();
+                }
+            }
+        });
         LoadWalletHistoryData(0);
     }
 
@@ -526,8 +533,9 @@ public class WalletFragment extends Fragment {
         }
     }
 
-    public void reloadData(){
-        LoadWalletSettingData();
-        LoadWalletDetailData();
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        closeDB();
     }
 }

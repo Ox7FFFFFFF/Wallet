@@ -59,13 +59,6 @@ public class DBHelper extends SQLiteOpenHelper {
             db.insert(CATEGORY_TABLE_NAME,null,contentValues);
         }
 
-
-        ContentValues contentValues = new ContentValues();
-        contentValues.put("_hour",16);
-        contentValues.put("_minute",15);
-        contentValues.put("_duration","1111111");
-        contentValues.put("_turn",1);
-        db.insert(CLOCK_TABLE_NAME,null,contentValues);
     }
 
     @Override
